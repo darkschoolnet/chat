@@ -825,6 +825,31 @@
     letter-spacing: 1px;
     min-height: 24px;
   }
+  /* APPENDED
+  /* Only animate NEW messages, not the whole batch on load */
+  .msg-anim {
+    animation: msgIn 0.18s ease forwards;
+  }
+  .msg:not(.msg-anim) {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+
+  .e2e-notice {
+    text-align: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    padding: 6px 16px;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
+  }
+
+  .profile-panel {
+    transition: width 0.2s ease, min-width 0.2s ease, opacity 0.2s ease;
+  }
 </style>
 </head>
 <body>
@@ -862,7 +887,7 @@
 
     <div class="tabs">
       <div class="tab active" id="tab-chats" onclick="switchTab('chats')">CHATS</div>
-      <div class="tab" id="tab-search" onclick="switchTab('search')">SUCHEN</div>
+      <div class="tab" id="tab-search" onclick="switchTab('search')">USERS</div>
       <div class="tab" id="tab-blocked" onclick="switchTab('blocked')">BLOCKIERT</div>
     </div>
 
@@ -878,11 +903,11 @@
       <div class="sidebar-header" style="border-bottom:1px solid var(--border-subtle);">
         <div class="search-wrap">
           <span class="search-icon">⌕</span>
-          <input type="text" id="search-input" placeholder="Benutzername suchen..." oninput="doSearch()" />
+          <input type="text" id="search-input" placeholder="Filtern..." oninput="doSearch()" />
         </div>
       </div>
       <div class="conv-list" id="search-results">
-        <div class="empty-state">Benutzername eingeben</div>
+        <div class="empty-state"><span class="loading-dots"><span></span><span></span><span></span></span></div>
       </div>
     </div>
 
@@ -912,13 +937,14 @@
           </div>
         </div>
         <div class="chat-header-actions">
+          <button class="btn btn-sm" id="profile-toggle-btn" onclick="toggleProfilePanel()" style="border-color:var(--border-mid);color:var(--text-secondary);"><span>INFO ▸</span></button>
           <button class="btn btn-sm btn-danger" id="block-btn" onclick="toggleBlock()"><span id="block-btn-txt">BLOCKIEREN</span></button>
         </div>
       </div>
       <div class="messages-wrap" id="messages-wrap"></div>
-      <div class="typing-indicator" id="typing-indicator"></div>
       <div id="blocked-banner" class="blocked-banner" style="display:none;">Du hast diesen User blockiert — Nachrichten deaktiviert</div>
       <div id="youre-blocked-banner" class="blocked-banner" style="display:none;">Dieser User hat dich blockiert</div>
+      <div class="e2e-notice" id="e2e-notice">🔒 Nachrichten sind Ende-zu-Ende verschlüsselt</div>
       <div class="chat-input-wrap" id="input-wrap">
         <textarea class="chat-input-box" id="msg-input" placeholder="Nachricht schreiben..." rows="1" onkeydown="inputKeydown(event)" oninput="autoResize(this)"></textarea>
         <button class="send-btn" id="send-btn" onclick="sendMessage()">SEND</button>
@@ -928,6 +954,7 @@
 
   <!-- PROFILE PANEL -->
   <div class="profile-panel" id="profile-panel" style="display:none;">
+    <button onclick="toggleProfilePanel()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-align:right;align-self:flex-end;padding:0;text-transform:uppercase;">✕ SCHLIESSEN</button>
     <div class="profile-avatar-lg" id="prof-avatar">?</div>
     <div class="profile-username" id="prof-username">—</div>
     <div class="profile-row">
@@ -1173,6 +1200,14 @@ function doLogout() {
   document.getElementById('login-pass').value = '';
 }
 
+function toggleProfilePanel() {
+  const pp  = document.getElementById('profile-panel');
+  const btn = document.getElementById('profile-toggle-btn');
+  const open = pp.style.display !== 'none';
+  pp.style.display = open ? 'none' : 'flex';
+  if (btn) btn.querySelector('span').textContent = open ? 'INFO ▸' : 'INFO ◂';
+}
+
 /* ─── BLOCKED ─── */
 async function loadBlockedList() {
   const { data } = await db.from('dsn_blocked').select('*').eq('blocker_id', me.id);
@@ -1348,8 +1383,7 @@ async function openChatWith(userId) {
     `${escHtml(u.real_name)} · Klasse ${u.grade} &nbsp;
      <span style="color:var(--success);font-size:10px;letter-spacing:1px;">🔒 ENDE-ZU-ENDE VERSCHLÜSSELT</span>`;
 
-  const pp = document.getElementById('profile-panel');
-  pp.style.display = 'flex';
+  // profile panel stays in its current open/closed state
   document.getElementById('prof-avatar').textContent    = u.username[0].toUpperCase();
   document.getElementById('prof-username').textContent  = u.username.toUpperCase();
   document.getElementById('prof-realname').textContent  = u.real_name;
@@ -1448,9 +1482,16 @@ function startPoll() {
   clearInterval(pollTimer);
   pollTimer = setInterval(async () => {
     if (!currentPartner) return;
-    const prev = allMessages.length;
-    await loadMessages(false);
-    if (allMessages.length > prev) {
+    // Only check for NEW messages — compare last known id
+    const lastKnownId = allMessages.length ? allMessages[allMessages.length - 1].id : null;
+    const { data: check } = await db.from('dsn_messages')
+      .select('id')
+      .or(`and(from_id.eq.${me.id},to_id.eq.${currentPartner.id}),and(from_id.eq.${currentPartner.id},to_id.eq.${me.id})`)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    const latestId = check?.[0]?.id;
+    if (latestId && latestId !== lastKnownId) {
+      await loadMessages(false);
       await db.from('dsn_messages').update({ read: true }).eq('from_id', currentPartner.id).eq('to_id', me.id);
       loadConversations();
     }
@@ -1515,19 +1556,52 @@ function doSearch() {
 async function executeSearch() {
   const q   = document.getElementById('search-input').value.trim().toLowerCase();
   const res = document.getElementById('search-results');
-  if (!q) { res.innerHTML = '<div class="empty-state">Benutzername eingeben</div>'; return; }
+
+  if (!q) {
+    allUsersLoaded = false;
+    await loadAllUsers();
+    return;
+  }
 
   res.innerHTML = '<div class="empty-state"><span class="loading-dots"><span></span><span></span><span></span></span></div>';
 
   const { data } = await db.from('dsn_users')
-    .select('id,username,real_name,grade,created_at')
+    .select('id,username,real_name,grade')
     .ilike('username', `%${q}%`)
     .neq('id', me.id)
-    .limit(15);
+    .limit(20);
 
   if (!data || !data.length) { res.innerHTML = '<div class="empty-state">Kein User gefunden</div>'; return; }
+  renderUserList(data, res);
+}
 
-  res.innerHTML = data.map(u => {
+/* ─── TABS ─── */
+function switchTab(name) {
+  ['chats','search','blocked'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t === name);
+    document.getElementById('panel-'+t).classList.toggle('active', t === name);
+  });
+  if (name === 'search') loadAllUsers();
+}
+
+let allUsersLoaded = false;
+async function loadAllUsers() {
+  const q = document.getElementById('search-input').value.trim();
+  if (q) return; // if user is typing, let doSearch handle it
+  if (allUsersLoaded) return;
+  const res = document.getElementById('search-results');
+  const { data } = await db.from('dsn_users')
+    .select('id,username,real_name,grade')
+    .neq('id', me.id)
+    .order('username', { ascending: true })
+    .limit(100);
+  if (!data || !data.length) { res.innerHTML = '<div class="empty-state">Keine anderen User</div>'; return; }
+  allUsersLoaded = true;
+  renderUserList(data, res);
+}
+
+function renderUserList(users, container) {
+  container.innerHTML = users.map(u => {
     const bl = iBlocked(u.id) ? '<span class="blocked-tag">BLOCKIERT</span>' : '';
     return `<div class="search-result-item" onclick="openChatWith('${u.id}')">
       <div class="avatar">${u.username[0].toUpperCase()}</div>
@@ -1537,14 +1611,6 @@ async function executeSearch() {
       </div>
     </div>`;
   }).join('');
-}
-
-/* ─── TABS ─── */
-function switchTab(name) {
-  ['chats','search','blocked'].forEach(t => {
-    document.getElementById('tab-'+t).classList.toggle('active', t === name);
-    document.getElementById('panel-'+t).classList.toggle('active', t === name);
-  });
 }
 
 /* ─── MODAL ─── */
