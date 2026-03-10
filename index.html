@@ -511,6 +511,8 @@
   .msg {
     display: flex;
     margin-bottom: 3px;
+  }
+  .msg.msg-anim {
     animation: msgIn 0.2s ease;
   }
   .msg.out { flex-direction: row-reverse; }
@@ -958,13 +960,14 @@
   </div>
 </div>
 
+
 <script>
 /* ─── SUPABASE ─── */
 const SUPABASE_URL  = 'https://sigjwzivusuzmhvixtbm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpZ2p3eml2dXN1em1odml4dGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNTI3MDksImV4cCI6MjA4ODcyODcwOX0.j0yB-NYM5HOkfKVBz24rWMBQNF8w-uEFjX55UGeD30E';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-/* ─── CRYPTO ─── */
+/* ─── PASSWORD CRYPTO ─── */
 function generateSalt() {
   const b = new Uint8Array(32); crypto.getRandomValues(b);
   return Array.from(b).map(x => x.toString(16).padStart(2,'0')).join('');
@@ -982,29 +985,102 @@ async function verifyPassword(password, saltHex, storedHash) {
   return (await hashPassword(password, saltHex)) === storedHash;
 }
 
+/* ─── E2E CRYPTO ─── */
+
+// Derive AES key from login-password to wrap/unwrap the ECDH private key
+async function deriveAESFromPassword(password, saltHex) {
+  const enc  = new TextEncoder();
+  const salt = new Uint8Array(saltHex.match(/.{2}/g).map(h => parseInt(h,16)));
+  const km   = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name:'PBKDF2', hash:'SHA-256', salt, iterations:200000 },
+    km, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']
+  );
+}
+
+async function encryptBlob(arrayBuffer, aesKey) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, aesKey, arrayBuffer);
+  return btoa(String.fromCharCode(...iv)) + '.' + btoa(String.fromCharCode(...new Uint8Array(ct)));
+}
+
+async function decryptBlob(blob, aesKey) {
+  const [ivB64, ctB64] = blob.split('.');
+  const iv = Uint8Array.from(atob(ivB64), c => c.charCodeAt(0));
+  const ct = Uint8Array.from(atob(ctB64), c => c.charCodeAt(0));
+  return crypto.subtle.decrypt({ name:'AES-GCM', iv }, aesKey, ct);
+}
+
+async function generateECDHKeypair() {
+  return crypto.subtle.generateKey({ name:'ECDH', namedCurve:'P-256' }, true, ['deriveKey']);
+}
+
+async function exportPublicKeyB64(pubKey) {
+  const raw = await crypto.subtle.exportKey('raw', pubKey);
+  return btoa(String.fromCharCode(...new Uint8Array(raw)));
+}
+
+async function importPublicKeyB64(b64) {
+  const raw = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  return crypto.subtle.importKey('raw', raw, { name:'ECDH', namedCurve:'P-256' }, false, []);
+}
+
+async function deriveSharedAES(myPrivKey, theirPubKey) {
+  return crypto.subtle.deriveKey(
+    { name:'ECDH', public: theirPubKey },
+    myPrivKey,
+    { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']
+  );
+}
+
+async function encryptMsg(text, sharedKey) {
+  const iv  = crypto.getRandomValues(new Uint8Array(12));
+  const enc = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, sharedKey, new TextEncoder().encode(text));
+  return 'E2E.' + btoa(String.fromCharCode(...iv)) + '.' + btoa(String.fromCharCode(...new Uint8Array(enc)));
+}
+
+async function decryptMsg(cipher, sharedKey) {
+  if (!cipher || !cipher.startsWith('E2E.')) return cipher;
+  try {
+    const parts = cipher.split('.');
+    const iv  = Uint8Array.from(atob(parts[1]), c => c.charCodeAt(0));
+    const ct  = Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0));
+    const plain = await crypto.subtle.decrypt({ name:'AES-GCM', iv }, sharedKey, ct);
+    return new TextDecoder().decode(plain);
+  } catch { return '🔒 [nicht entschlüsselbar]'; }
+}
+
 /* ─── SESSION ─── */
-function saveSession(user) { sessionStorage.setItem('dsn_session', JSON.stringify(user)); }
-function getSession()      { try { return JSON.parse(sessionStorage.getItem('dsn_session')); } catch { return null; } }
-function clearSession()    { sessionStorage.removeItem('dsn_session'); }
+function saveSession(user)  { sessionStorage.setItem('dsn_session', JSON.stringify(user)); }
+function getSession()       { try { return JSON.parse(sessionStorage.getItem('dsn_session')); } catch { return null; } }
+function clearSession()     { sessionStorage.removeItem('dsn_session'); }
+
+// We store the plaintext password only in memory (never persisted) so we can
+// re-derive the AES wrapping key after a page reload via session re-login.
+// On session-restore (tab refresh) the user must re-login — sessions are tab-scoped anyway.
+let sessionPassword = null;
 
 /* ─── STATE ─── */
-let me            = null;   // logged-in user
-let currentPartner = null; // currently open chat partner
-let pollTimer     = null;
-let convPollTimer = null;
-let allMessages   = [];
-let blockedList   = [];     // users I blocked
-let searchTimer   = null;
+let me              = null;
+let myPrivateKey    = null;  // ECDH CryptoKey — in memory only
+let currentPartner  = null;
+let currentSharedKey = null; // AES CryptoKey for current chat
+let pollTimer       = null;
+let convPollTimer   = null;
+let allMessages     = [];
+let blockedList     = [];
+let searchTimer     = null;
+let renderedMsgIds  = new Set();  // track rendered messages to avoid re-render jitter
+let chatOpenPartner = null;       // id of partner when chat was first opened (to detect switch)
 
 /* ─── INIT ─── */
 window.addEventListener('DOMContentLoaded', async () => {
-  const s = getSession();
-  if (s) {
-    me = s;
-    await enterApp();
-  }
+  // No auto-restore from session — password needed for key derivation, so always require login
   document.getElementById('login-pass').addEventListener('keydown', e => {
     if (e.key === 'Enter') doLogin();
+  });
+  document.getElementById('login-user').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('login-pass').focus();
   });
 });
 
@@ -1026,11 +1102,53 @@ async function doLogin() {
     const ok = await verifyPassword(pass, data.salt, data.password_hash);
     if (!ok) { err.textContent = 'Falsches Passwort.'; loginBtn.textContent = 'EINLOGGEN'; return; }
     me = data;
+    sessionPassword = pass;
+    await setupE2EKeys(pass);
     saveSession(me);
     await enterApp();
   } catch(e) {
+    console.error(e);
     err.textContent = 'Verbindungsfehler.';
     loginBtn.textContent = 'EINLOGGEN';
+  }
+}
+
+/* ─── E2E KEY SETUP ─── */
+async function setupE2EKeys(password) {
+  const aesKey = await deriveAESFromPassword(password, me.salt);
+
+  if (!me.encrypted_private_key || !me.public_key) {
+    // First time — generate keypair
+    showNotif('Schlüssel werden generiert…');
+    const keypair  = await generateECDHKeypair();
+    const pubB64   = await exportPublicKeyB64(keypair.publicKey);
+    const privPkcs8 = await crypto.subtle.exportKey('pkcs8', keypair.privateKey);
+    const encPriv  = await encryptBlob(privPkcs8, aesKey);
+
+    await db.from('dsn_users').update({ public_key: pubB64, encrypted_private_key: encPriv }).eq('id', me.id);
+    me.public_key              = pubB64;
+    me.encrypted_private_key   = encPriv;
+    myPrivateKey               = keypair.privateKey;
+    showNotif('🔒 E2E-Schlüssel erstellt', 'success');
+  } else {
+    // Decrypt existing private key
+    try {
+      const privPkcs8 = await decryptBlob(me.encrypted_private_key, aesKey);
+      myPrivateKey = await crypto.subtle.importKey(
+        'pkcs8', privPkcs8, { name:'ECDH', namedCurve:'P-256' }, false, ['deriveKey']
+      );
+    } catch {
+      // Key corrupt or wrong password — regenerate (shouldn't happen normally)
+      showNotif('Schlüssel-Fehler — neuer Key wird generiert', 'warning');
+      const keypair  = await generateECDHKeypair();
+      const pubB64   = await exportPublicKeyB64(keypair.publicKey);
+      const privPkcs8 = await crypto.subtle.exportKey('pkcs8', keypair.privateKey);
+      const encPriv  = await encryptBlob(privPkcs8, aesKey);
+      await db.from('dsn_users').update({ public_key: pubB64, encrypted_private_key: encPriv }).eq('id', me.id);
+      me.public_key            = pubB64;
+      me.encrypted_private_key = encPriv;
+      myPrivateKey             = keypair.privateKey;
+    }
   }
 }
 
@@ -1038,7 +1156,6 @@ async function enterApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').classList.add('visible');
   document.getElementById('hdr-username').textContent = me.username;
-  await ensureTables();
   await loadBlockedList();
   await loadConversations();
   startConvPoll();
@@ -1048,28 +1165,12 @@ function doLogout() {
   clearSession();
   clearInterval(pollTimer);
   clearInterval(convPollTimer);
-  me = null; currentPartner = null;
+  me = null; myPrivateKey = null; currentPartner = null; currentSharedKey = null;
+  sessionPassword = null;
   document.getElementById('app').classList.remove('visible');
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('login-user').value = '';
   document.getElementById('login-pass').value = '';
-}
-
-/* ─── TABLE SETUP ─── */
-async function ensureTables() {
-  // Tables must exist in Supabase. We try to query them.
-  // dsn_messages: id, from_id, to_id, content, created_at
-  // dsn_blocked:  id, blocker_id, blocked_id, created_at
-  // We'll silently ignore if tables don't exist yet and show instructions.
-  try {
-    await db.from('dsn_messages').select('id').limit(1);
-  } catch(e) {
-    showNotif('Tabellen fehlen! Siehe Konsole.', 'danger');
-    console.warn('CREATE TABLE dsn_messages (id UUID DEFAULT gen_random_uuid() PRIMARY KEY, from_id UUID NOT NULL, to_id UUID NOT NULL, content TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW());');
-    console.warn('CREATE TABLE dsn_blocked (id UUID DEFAULT gen_random_uuid() PRIMARY KEY, blocker_id UUID NOT NULL, blocked_id UUID NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(blocker_id, blocked_id));');
-    console.warn('RLS: ALTER TABLE dsn_messages ENABLE ROW LEVEL SECURITY; CREATE POLICY "open" ON dsn_messages FOR ALL USING (true) WITH CHECK (true);');
-    console.warn('RLS: ALTER TABLE dsn_blocked ENABLE ROW LEVEL SECURITY; CREATE POLICY "open" ON dsn_blocked FOR ALL USING (true) WITH CHECK (true);');
-  }
 }
 
 /* ─── BLOCKED ─── */
@@ -1082,13 +1183,10 @@ async function loadBlockedList() {
 async function renderBlockedTab() {
   const list = document.getElementById('blocked-list');
   if (!blockedList.length) { list.innerHTML = '<div class="empty-state">Keine blockierten User</div>'; return; }
-
-  // Get usernames for blocked IDs
   const ids = blockedList.map(b => b.blocked_id);
   const { data: users } = await db.from('dsn_users').select('id,username,real_name,grade').in('id', ids);
   const map = {};
   (users||[]).forEach(u => map[u.id] = u);
-
   list.innerHTML = blockedList.map(b => {
     const u = map[b.blocked_id] || {};
     return `<div class="conv-item" onclick="openChatWith('${b.blocked_id}')">
@@ -1115,7 +1213,6 @@ async function isBlockedByPartner(userId) {
 async function toggleBlock() {
   if (!currentPartner) return;
   const blocked = iBlocked(currentPartner.id);
-
   openModal(
     blocked ? 'BLOCKIERUNG AUFHEBEN' : 'USER BLOCKIEREN',
     blocked
@@ -1137,69 +1234,61 @@ async function toggleBlock() {
 }
 
 function updateBlockUI() {
-  const blocked = iBlocked(currentPartner?.id);
+  if (!currentPartner) return;
+  const blocked = iBlocked(currentPartner.id);
   const txt = blocked ? 'ENTSPERREN' : 'BLOCKIEREN';
   document.getElementById('block-btn-txt').textContent = txt;
   const profTxt = document.getElementById('prof-block-txt');
   if (profTxt) profTxt.textContent = txt;
-  const banner = document.getElementById('blocked-banner');
-  const wrap   = document.getElementById('input-wrap');
+  const banner  = document.getElementById('blocked-banner');
+  const wrap    = document.getElementById('input-wrap');
   if (banner && wrap) {
     banner.style.display = blocked ? 'block' : 'none';
-    wrap.style.display   = blocked ? 'none'  : 'flex';
+    if (!blocked) wrap.style.display = 'flex';
   }
 }
 
 /* ─── CONVERSATIONS ─── */
 async function loadConversations() {
-  // Find all unique partners from messages
-  const { data: sent } = await db.from('dsn_messages').select('to_id, content, created_at').eq('from_id', me.id).order('created_at', {ascending:false});
-  const { data: recv } = await db.from('dsn_messages').select('from_id, content, created_at').eq('to_id', me.id).order('created_at', {ascending:false});
+  const { data: sent } = await db.from('dsn_messages').select('to_id,created_at').eq('from_id', me.id).order('created_at', {ascending:false});
+  const { data: recv } = await db.from('dsn_messages').select('from_id,created_at').eq('to_id', me.id).order('created_at', {ascending:false});
 
-  const partnerIds = new Set();
-  (sent||[]).forEach(m => partnerIds.add(m.to_id));
-  (recv||[]).forEach(m => partnerIds.add(m.from_id));
+  const partnerMap = new Map(); // id → latest timestamp
+  (sent||[]).forEach(m => {
+    const cur = partnerMap.get(m.to_id);
+    if (!cur || new Date(m.created_at) > new Date(cur)) partnerMap.set(m.to_id, m.created_at);
+  });
+  (recv||[]).forEach(m => {
+    const cur = partnerMap.get(m.from_id);
+    if (!cur || new Date(m.created_at) > new Date(cur)) partnerMap.set(m.from_id, m.created_at);
+  });
 
-  if (!partnerIds.size) {
+  if (!partnerMap.size) {
     document.getElementById('conv-list').innerHTML = '<div class="empty-state">Noch keine Chats</div>';
     return;
   }
 
-  const { data: users } = await db.from('dsn_users').select('id,username,real_name,grade').in('id', [...partnerIds]);
+  const { data: users } = await db.from('dsn_users').select('id,username,real_name,grade').in('id', [...partnerMap.keys()]);
   const userMap = {};
   (users||[]).forEach(u => userMap[u.id] = u);
 
-  // For each partner, find last message
-  const convs = [];
-  for (const uid of partnerIds) {
-    const u = userMap[uid];
-    if (!u) continue;
-    // last message (either direction)
-    const allMsgs = [
-      ...(sent||[]).filter(m => m.to_id === uid),
-      ...(recv||[]).filter(m => m.from_id === uid)
-    ].sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+  const convs = [...partnerMap.entries()]
+    .map(([id, ts]) => ({ user: userMap[id], ts }))
+    .filter(c => c.user)
+    .sort((a,b) => new Date(b.ts) - new Date(a.ts));
 
-    const last = allMsgs[0];
-    convs.push({ user: u, lastMsg: last });
-  }
-  convs.sort((a,b) => new Date(b.lastMsg?.created_at||0) - new Date(a.lastMsg?.created_at||0));
-
-  // Count unread per partner
-  const { data: unread } = await db.from('dsn_messages')
-    .select('from_id')
-    .eq('to_id', me.id)
-    .eq('read', false);
+  const { data: unreadRows } = await db.from('dsn_messages').select('from_id').eq('to_id', me.id).eq('read', false);
   const unreadMap = {};
-  (unread||[]).forEach(m => { unreadMap[m.from_id] = (unreadMap[m.from_id]||0) + 1; });
+  (unreadRows||[]).forEach(m => { unreadMap[m.from_id] = (unreadMap[m.from_id]||0) + 1; });
 
   const list = document.getElementById('conv-list');
   list.innerHTML = convs.map(c => {
     const active = currentPartner?.id === c.user.id ? 'active' : '';
-    const cnt = unreadMap[c.user.id] || 0;
-    const badge = cnt ? `<span class="unread-badge">${cnt}</span>` : '';
-    const time = c.lastMsg ? formatTime(c.lastMsg.created_at) : '';
-    const preview = c.lastMsg ? escHtml(c.lastMsg.content).substring(0,40) : '';
+    const cnt    = unreadMap[c.user.id] || 0;
+    const badge  = cnt ? `<span class="unread-badge">${cnt}</span>` : '';
+    const time   = formatTime(c.ts);
+    // Preview: just show lock icon since messages are encrypted
+    const preview = `<span style="color:var(--text-muted);font-size:11px;">🔒 verschlüsselt</span>`;
     return `<div class="conv-item ${active}" onclick="openChatWith('${c.user.id}')">
       <div class="avatar">${c.user.username[0].toUpperCase()}</div>
       <div class="conv-info">
@@ -1216,42 +1305,59 @@ async function loadConversations() {
 
 function startConvPoll() {
   clearInterval(convPollTimer);
-  convPollTimer = setInterval(async () => {
-    await loadConversations();
-  }, 5000);
+  convPollTimer = setInterval(loadConversations, 5000);
 }
 
 /* ─── OPEN CHAT ─── */
 async function openChatWith(userId) {
-  // Load user data
   const { data: u } = await db.from('dsn_users').select('*').eq('id', userId).single();
   if (!u) return;
+
+  // If switching to a new partner, clear rendered messages
+  if (chatOpenPartner !== userId) {
+    renderedMsgIds.clear();
+    chatOpenPartner = userId;
+    const wrap = document.getElementById('messages-wrap');
+    wrap.innerHTML = '';
+    wrap.dataset.lastDate = '';
+  }
+
   currentPartner = u;
 
-  // Switch to chats tab
+  // Derive shared key for this conversation
+  if (u.public_key && myPrivateKey) {
+    try {
+      const theirPub = await importPublicKeyB64(u.public_key);
+      currentSharedKey = await deriveSharedAES(myPrivateKey, theirPub);
+    } catch(e) {
+      currentSharedKey = null;
+      console.warn('Could not derive shared key:', e);
+    }
+  } else {
+    currentSharedKey = null;
+  }
+
   switchTab('chats');
 
-  // Update header
   document.getElementById('chat-empty').style.display = 'none';
   const cv = document.getElementById('chat-view');
   cv.style.display = 'flex';
-  document.getElementById('chat-avatar').textContent = u.username[0].toUpperCase();
-  document.getElementById('chat-name').textContent = u.username.toUpperCase();
-  document.getElementById('chat-meta').textContent = `${u.real_name} · Klasse ${u.grade}`;
+  document.getElementById('chat-avatar').textContent    = u.username[0].toUpperCase();
+  document.getElementById('chat-name').textContent      = u.username.toUpperCase();
+  document.getElementById('chat-meta').innerHTML        =
+    `${escHtml(u.real_name)} · Klasse ${u.grade} &nbsp;
+     <span style="color:var(--success);font-size:10px;letter-spacing:1px;">🔒 ENDE-ZU-ENDE VERSCHLÜSSELT</span>`;
 
-  // Profile panel
   const pp = document.getElementById('profile-panel');
   pp.style.display = 'flex';
-  document.getElementById('prof-avatar').textContent = u.username[0].toUpperCase();
-  document.getElementById('prof-username').textContent = u.username.toUpperCase();
-  document.getElementById('prof-realname').textContent = u.real_name;
-  document.getElementById('prof-grade').textContent = `Klasse ${u.grade}`;
-  document.getElementById('prof-since').textContent = new Date(u.created_at).toLocaleDateString('de-DE');
+  document.getElementById('prof-avatar').textContent    = u.username[0].toUpperCase();
+  document.getElementById('prof-username').textContent  = u.username.toUpperCase();
+  document.getElementById('prof-realname').textContent  = u.real_name;
+  document.getElementById('prof-grade').textContent     = `Klasse ${u.grade}`;
+  document.getElementById('prof-since').textContent     = new Date(u.created_at).toLocaleDateString('de-DE');
 
-  // Check block status
   updateBlockUI();
 
-  // Check if partner blocked me
   const theyBlockedMe = await isBlockedByPartner(u.id);
   document.getElementById('youre-blocked-banner').style.display = theyBlockedMe ? 'block' : 'none';
   const inputWrap = document.getElementById('input-wrap');
@@ -1261,53 +1367,81 @@ async function openChatWith(userId) {
     inputWrap.style.display = 'flex';
   }
 
-  // Mark messages as read
   await db.from('dsn_messages').update({ read: true }).eq('from_id', u.id).eq('to_id', me.id);
-
-  await loadMessages();
+  await loadMessages(true);
   startPoll();
   loadConversations();
 }
 
 /* ─── MESSAGES ─── */
-async function loadMessages() {
+async function loadMessages(initialLoad = false) {
   if (!currentPartner) return;
   const { data } = await db.from('dsn_messages')
     .select('*')
     .or(`and(from_id.eq.${me.id},to_id.eq.${currentPartner.id}),and(from_id.eq.${currentPartner.id},to_id.eq.${me.id})`)
     .order('created_at', { ascending: true });
 
-  allMessages = data || [];
-  renderMessages();
+  // Decrypt all messages
+  const decrypted = [];
+  for (const m of (data||[])) {
+    let content = m.content;
+    if (currentSharedKey) {
+      content = await decryptMsg(m.content, currentSharedKey);
+    }
+    decrypted.push({ ...m, content });
+  }
+  allMessages = decrypted;
+  renderMessages(initialLoad);
 }
 
-function renderMessages() {
+/* ─── RENDER — append-only, no jitter ─── */
+function renderMessages(initialLoad = false) {
   const wrap = document.getElementById('messages-wrap');
+
   if (!allMessages.length) {
-    wrap.innerHTML = '<div class="empty-state" style="margin-top:40px;">Noch keine Nachrichten — schreib was!</div>';
+    if (!renderedMsgIds.size) {
+      wrap.innerHTML = '<div class="empty-state" style="margin-top:40px;">Noch keine Nachrichten — schreib was!</div>';
+    }
     return;
   }
 
-  let html = '';
-  let lastDate = '';
+  // Remove empty-state placeholder if present
+  const placeholder = wrap.querySelector('.empty-state');
+  if (placeholder) placeholder.remove();
+
+  const wasAtBottom = wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight < 80;
+  let lastDate = wrap.dataset.lastDate || '';
+  let addedAny = false;
+
   allMessages.forEach(m => {
-    const d = new Date(m.created_at);
-    const dateStr = d.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
+    if (renderedMsgIds.has(m.id)) return; // already rendered — skip
+    renderedMsgIds.add(m.id);
+    addedAny = true;
+
+    const d       = new Date(m.created_at);
+    const dateStr = d.toLocaleDateString('de-DE', { weekday:'long', day:'numeric', month:'long' });
+
     if (dateStr !== lastDate) {
-      html += `<div class="msg-group-label">${dateStr}</div>`;
+      const label = document.createElement('div');
+      label.className = 'msg-group-label';
+      label.textContent = dateStr;
+      wrap.appendChild(label);
       lastDate = dateStr;
+      wrap.dataset.lastDate = lastDate;
     }
-    const isOut = m.from_id === me.id;
-    const timeStr = d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
-    html += `<div class="msg ${isOut ? 'out' : 'in'}">
-      <div class="msg-bubble">
-        ${escHtml(m.content).replace(/\n/g,'<br>')}
-        <span class="msg-time">${timeStr}</span>
-      </div>
-    </div>`;
+
+    const isOut  = m.from_id === me.id;
+    const time   = d.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' });
+    const el     = document.createElement('div');
+    // Only animate if it's a new incoming message (not the initial batch load)
+    el.className = `msg ${isOut ? 'out' : 'in'}${!initialLoad ? ' msg-anim' : ''}`;
+    el.innerHTML = `<div class="msg-bubble">${escHtml(m.content).replace(/\n/g,'<br>')}<span class="msg-time">${time}</span></div>`;
+    wrap.appendChild(el);
   });
-  wrap.innerHTML = html;
-  wrap.scrollTop = wrap.scrollHeight;
+
+  if (addedAny && (initialLoad || wasAtBottom)) {
+    wrap.scrollTop = wrap.scrollHeight;
+  }
 }
 
 function startPoll() {
@@ -1315,9 +1449,8 @@ function startPoll() {
   pollTimer = setInterval(async () => {
     if (!currentPartner) return;
     const prev = allMessages.length;
-    await loadMessages();
+    await loadMessages(false);
     if (allMessages.length > prev) {
-      // Mark new as read
       await db.from('dsn_messages').update({ read: true }).eq('from_id', currentPartner.id).eq('to_id', me.id);
       loadConversations();
     }
@@ -1327,11 +1460,10 @@ function startPoll() {
 /* ─── SEND MESSAGE ─── */
 async function sendMessage() {
   if (!currentPartner) return;
-  const input = document.getElementById('msg-input');
+  const input   = document.getElementById('msg-input');
   const content = input.value.trim();
   if (!content) return;
 
-  // Check if blocked
   if (iBlocked(currentPartner.id)) { showNotif('User ist blockiert', 'danger'); return; }
   const theyBlockedMe = await isBlockedByPartner(currentPartner.id);
   if (theyBlockedMe) { showNotif('Du wurdest blockiert', 'danger'); return; }
@@ -1341,11 +1473,16 @@ async function sendMessage() {
   input.value = '';
   input.style.height = 'auto';
 
+  let toStore = content;
+  if (currentSharedKey) {
+    toStore = await encryptMsg(content, currentSharedKey);
+  }
+
   const { error } = await db.from('dsn_messages').insert({
-    from_id:    me.id,
-    to_id:      currentPartner.id,
-    content:    content,
-    read:       false
+    from_id: me.id,
+    to_id:   currentPartner.id,
+    content: toStore,
+    read:    false
   });
 
   btn.disabled = false;
@@ -1356,15 +1493,12 @@ async function sendMessage() {
     return;
   }
 
-  await loadMessages();
+  await loadMessages(false);
   loadConversations();
 }
 
 function inputKeydown(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 }
 
 function autoResize(el) {
@@ -1379,7 +1513,7 @@ function doSearch() {
 }
 
 async function executeSearch() {
-  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  const q   = document.getElementById('search-input').value.trim().toLowerCase();
   const res = document.getElementById('search-results');
   if (!q) { res.innerHTML = '<div class="empty-state">Benutzername eingeben</div>'; return; }
 
@@ -1391,10 +1525,7 @@ async function executeSearch() {
     .neq('id', me.id)
     .limit(15);
 
-  if (!data || !data.length) {
-    res.innerHTML = '<div class="empty-state">Kein User gefunden</div>';
-    return;
-  }
+  if (!data || !data.length) { res.innerHTML = '<div class="empty-state">Kein User gefunden</div>'; return; }
 
   res.innerHTML = data.map(u => {
     const bl = iBlocked(u.id) ? '<span class="blocked-tag">BLOCKIERT</span>' : '';
@@ -1419,18 +1550,16 @@ function switchTab(name) {
 /* ─── MODAL ─── */
 function openModal(title, body, onConfirm) {
   document.getElementById('modal-title').textContent = title;
-  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('modal-body').innerHTML    = body;
   document.getElementById('confirm-modal').classList.add('open');
   document.getElementById('modal-confirm-btn').onclick = onConfirm;
 }
-function closeModal() {
-  document.getElementById('confirm-modal').classList.remove('open');
-}
+function closeModal() { document.getElementById('confirm-modal').classList.remove('open'); }
 
 /* ─── NOTIFICATION ─── */
 function showNotif(msg, type = '') {
   const n = document.createElement('div');
-  n.className = `notif ${type}`;
+  n.className   = `notif ${type}`;
   n.textContent = msg;
   document.body.appendChild(n);
   setTimeout(() => n.remove(), 3000);
@@ -1442,11 +1571,11 @@ function escHtml(s) {
 }
 
 function formatTime(ts) {
-  const d = new Date(ts);
-  const now = new Date();
+  const d    = new Date(ts);
+  const now  = new Date();
   const diff = now - d;
-  if (diff < 60000)   return 'gerade eben';
-  if (diff < 3600000) return Math.floor(diff/60000) + 'm';
+  if (diff < 60000)    return 'gerade eben';
+  if (diff < 3600000)  return Math.floor(diff/60000) + 'm';
   if (diff < 86400000) return d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
   return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
 }
