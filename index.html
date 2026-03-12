@@ -3,948 +3,354 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>DSN CHAT</title>
+<title>DARK SCHOOL NET — CHAT</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --bg-base:        #0a0a0a;
-    --bg-surface:     #111111;
-    --bg-card:        #161616;
-    --bg-input:       #0e0e0e;
-    --border-subtle:  #222222;
-    --border-mid:     #333333;
-    --border-active:  #555555;
-    --text-primary:   #c8c8c8;
-    --text-secondary: #666666;
-    --text-muted:     #3a3a3a;
-    --text-white:     #e8e8e8;
-    --accent:         #5b8cff;
-    --accent-glow:    rgba(91,140,255,0.15);
-    --danger:         #ff4444;
-    --danger-glow:    rgba(255,68,68,0.12);
-    --success:        #44cc88;
-    --warning:        #ffaa33;
-    --admin:          #cc44ff;
-    --admin-glow:     rgba(204,68,255,0.15);
-  }
+:root {
+  --bg-base:        #0a0a0a;
+  --bg-surface:     #111111;
+  --bg-card:        #161616;
+  --bg-input:       #0e0e0e;
+  --border-subtle:  #222222;
+  --border-mid:     #333333;
+  --border-active:  #555555;
+  --text-primary:   #c8c8c8;
+  --text-secondary: #666666;
+  --text-muted:     #3a3a3a;
+  --text-white:     #e8e8e8;
+  --accent:         #5b8cff;
+  --accent-glow:    rgba(91,140,255,0.15);
+  --danger:         #ff4444;
+  --danger-glow:    rgba(255,68,68,0.12);
+  --success:        #44cc88;
+  --warning:        #ffaa33;
+}
 
-  html, body {
-    height: 100%;
-    background: var(--bg-base);
-    color: var(--text-primary);
-    font-family: 'Barlow', sans-serif;
-    overflow: hidden;
-  }
+html, body { height:100%; background:var(--bg-base); color:var(--text-primary); font-family:'Barlow',sans-serif; overflow:hidden; }
 
-  /* SCANLINES */
-  body::before {
-    content: '';
-    position: fixed; inset: 0; z-index: 9999;
-    pointer-events: none;
-    background: repeating-linear-gradient(
-      0deg,
-      rgba(0,0,0,0.07) 0px,
-      rgba(0,0,0,0.07) 1px,
-      transparent 1px,
-      transparent 3px
-    );
-    opacity: 0.4;
-  }
+body::before {
+  content:''; position:fixed; inset:0; z-index:9999; pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,0.07) 0px,rgba(0,0,0,0.07) 1px,transparent 1px,transparent 3px);
+  opacity:0.4;
+}
+body::after {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);
+  background-size:40px 40px;
+}
 
-  /* GRID BG */
-  body::after {
-    content: '';
-    position: fixed; inset: 0; z-index: 0;
-    pointer-events: none;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
-    background-size: 40px 40px;
-  }
+/* LOGIN */
+#login-screen { position:fixed; inset:0; z-index:100; display:flex; align-items:stretch; background:var(--bg-base); min-height:100vh; }
 
-  /* ─── LOGIN ─── */
-  #login-screen {
-    position: fixed; inset: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--bg-base);
-  }
+.login-hero {
+  flex:1; min-width:320px; display:flex; flex-direction:column; justify-content:center; padding:56px 64px;
+  border-right:1px solid var(--border-subtle); position:relative; overflow:hidden;
+}
+.login-hero::before {
+  content:''; position:absolute; top:-120px; left:-120px; width:500px; height:500px; border-radius:50%;
+  background:radial-gradient(circle, rgba(91,140,255,0.08) 0%, transparent 70%); pointer-events:none;
+}
+.hero-eyebrow { font-family:'Barlow Condensed',sans-serif; font-size:11px; letter-spacing:4px; text-transform:uppercase; color:var(--accent); margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+.hero-eyebrow::before { content:''; display:block; width:24px; height:1px; background:var(--accent); }
+.hero-headline { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:clamp(40px,4.5vw,68px); line-height:0.95; letter-spacing:1px; text-transform:uppercase; color:var(--text-white); margin-bottom:24px; }
+.hero-headline em { color:var(--accent); font-style:normal; display:block; }
+.hero-sub { font-family:'Barlow',sans-serif; font-size:15px; color:var(--text-secondary); line-height:1.7; max-width:400px; margin-bottom:28px; }
+.hero-sub strong { color:var(--text-primary); }
+.hero-features { display:flex; flex-direction:column; gap:10px; margin-bottom:32px; }
+.hero-feature { display:flex; align-items:center; gap:12px; font-family:'Barlow Condensed',sans-serif; font-size:13px; letter-spacing:1px; color:var(--text-secondary); }
+.hero-feature::before { content:''; width:6px; height:6px; background:var(--accent); flex-shrink:0; }
+.hero-register-hint { display:flex; align-items:flex-start; gap:12px; font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:1px; color:var(--text-muted); border-top:1px solid var(--border-subtle); padding-top:24px; line-height:1.6; }
+.hero-register-hint strong { color:var(--accent); font-weight:600; }
+.hero-register-hint::before { content:'!'; display:flex; align-items:center; justify-content:center; width:20px; height:20px; min-width:20px; border:1px solid var(--accent); color:var(--accent); font-family:Impact,sans-serif; font-size:13px; margin-top:1px; }
 
-  .login-box {
-    width: 360px;
-    border: 1px solid var(--border-mid);
-    background: var(--bg-card);
-    padding: 40px 36px;
-    position: relative;
-    animation: cardIn 0.4s ease;
-  }
-  .login-box::before {
-    content: '';
-    position: absolute; top: 0; left: 0;
-    width: 32px; height: 32px;
-    border-top: 2px solid var(--accent);
-    border-left: 2px solid var(--accent);
-  }
-  .login-box::after {
-    content: '';
-    position: absolute; bottom: 0; right: 0;
-    width: 32px; height: 32px;
-    border-bottom: 2px solid var(--border-mid);
-    border-right: 2px solid var(--border-mid);
-  }
+.login-side { width:400px; flex-shrink:0; display:flex; align-items:center; justify-content:center; padding:48px; background:var(--bg-surface); border-left:1px solid var(--border-subtle); }
+.login-box { width:100%; position:relative; animation:cardIn 0.4s ease; }
+.login-box .login-logo { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:11px; letter-spacing:4px; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px; }
+.login-box .login-title { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:32px; letter-spacing:2px; color:var(--text-white); text-transform:uppercase; margin-bottom:28px; line-height:1; }
+.login-box .login-title span { color:var(--accent); }
+.login-box::before { display:none; }
+.login-box::after  { display:none; }
+.login-logo  { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:11px; letter-spacing:4px; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px; }
+.login-title { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:32px; letter-spacing:2px; color:var(--text-white); text-transform:uppercase; margin-bottom:28px; line-height:1; }
+.login-title span { color:var(--accent); }
+.field { margin-bottom:16px; }
+.field-label { font-family:'Barlow Condensed',sans-serif; font-size:11px; letter-spacing:2px; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px; }
+input[type=text],input[type=password] { width:100%; background:var(--bg-input); border:1px solid var(--border-subtle); color:var(--text-white); font-family:'Barlow Condensed',sans-serif; font-size:15px; padding:10px 12px; outline:none; transition:border-color 0.2s; }
+input:focus { border-color:var(--accent); }
+input::placeholder { color:var(--text-muted); }
+.error-msg { font-family:'Barlow Condensed',sans-serif; font-size:13px; color:var(--danger); margin-top:10px; min-height:18px; }
 
-  .login-logo {
-    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    font-size: 11px;
-    letter-spacing: 4px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-  .login-title {
-    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    font-size: 32px;
-    letter-spacing: 2px;
-    color: var(--text-white);
-    text-transform: uppercase;
-    margin-bottom: 28px;
-    line-height: 1;
-  }
-  .login-title span { color: var(--accent); }
+/* BUTTONS */
+.btn { width:100%; background:transparent; border:1px solid var(--accent); color:var(--accent); font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:14px; letter-spacing:3px; text-transform:uppercase; padding:12px; cursor:pointer; position:relative; overflow:hidden; transition:color 0.2s; margin-top:8px; }
+.btn::before { content:''; position:absolute; inset:0; background:var(--accent); transform:scaleX(0); transform-origin:left; transition:transform 0.25s ease; }
+.btn:hover::before { transform:scaleX(1); }
+.btn:hover { color:#000; }
+.btn span { position:relative; z-index:1; }
+.btn-danger { border-color:var(--danger); color:var(--danger); }
+.btn-danger::before { background:var(--danger); }
+.btn-danger:hover { color:#fff; }
+.btn-ghost { border-color:var(--border-subtle); color:var(--text-secondary); }
+.btn-ghost::before { background:var(--border-mid); }
+.btn-ghost:hover { color:var(--text-white); }
+.btn-sm { width:auto; padding:6px 14px; font-size:11px; letter-spacing:2px; margin-top:0; }
 
-  .field-label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 11px;
-    letter-spacing: 2px;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-  .field { margin-bottom: 16px; }
+/* APP LAYOUT */
+#app { display:none; position:fixed; inset:0; z-index:10; flex-direction:row; }
+#app.visible { display:flex; }
 
-  input[type=text], input[type=password] {
-    width: 100%;
-    background: var(--bg-input);
-    border: 1px solid var(--border-subtle);
-    color: var(--text-white);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 15px;
-    padding: 10px 12px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  input[type=text]:focus, input[type=password]:focus {
-    border-color: var(--accent);
-  }
-  input::placeholder { color: var(--text-muted); }
+/* SIDEBAR */
+.sidebar { width:300px; min-width:300px; background:var(--bg-surface); border-right:1px solid var(--border-subtle); display:flex; flex-direction:column; height:100%; flex-shrink:0; }
+.sidebar-header { padding:16px 16px 12px; border-bottom:1px solid var(--border-subtle); flex-shrink:0; }
+.sidebar-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.app-name { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:18px; letter-spacing:3px; color:var(--text-white); text-transform:uppercase; }
+.app-name span { color:var(--accent); }
+.user-badge { font-family:'Barlow Condensed',sans-serif; font-size:12px; color:var(--text-secondary); letter-spacing:1px; }
+.user-badge strong { color:var(--accent); }
+.logout-btn { background:none; border:1px solid var(--border-subtle); color:var(--text-muted); font-family:'Barlow Condensed',sans-serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; padding:4px 8px; cursor:pointer; transition:border-color 0.2s,color 0.2s; }
+.logout-btn:hover { border-color:var(--danger); color:var(--danger); }
 
-  .btn {
-    width: 100%;
-    background: transparent;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    font-size: 14px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    padding: 12px;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    transition: color 0.2s;
-    margin-top: 8px;
-  }
-  .btn::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: var(--accent);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.25s ease;
-  }
-  .btn:hover::before { transform: scaleX(1); }
-  .btn:hover { color: #000; }
-  .btn span { position: relative; z-index: 1; }
+.search-wrap { position:relative; }
+.search-wrap input { width:100%; background:var(--bg-input); border:1px solid var(--border-subtle); color:var(--text-white); font-family:'Barlow Condensed',sans-serif; font-size:13px; padding:8px 12px 8px 32px; outline:none; transition:border-color 0.2s; }
+.search-wrap input:focus { border-color:var(--accent); }
+.search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:13px; pointer-events:none; }
 
-  .btn-danger {
-    border-color: var(--danger);
-    color: var(--danger);
-  }
-  .btn-danger::before { background: var(--danger); }
-  .btn-danger:hover { color: #fff; }
+.tabs { display:flex; border-bottom:1px solid var(--border-subtle); flex-shrink:0; }
+.tab { flex:1; padding:10px; text-align:center; font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--text-secondary); cursor:pointer; position:relative; transition:color 0.2s; }
+.tab::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--accent); transform:scaleX(0); transition:transform 0.2s; }
+.tab.active { color:var(--accent); }
+.tab.active::after { transform:scaleX(1); }
+.tab-panel { display:none; }
+.tab-panel.active { display:flex; flex-direction:column; flex:1; overflow:hidden; }
 
-  .btn-sm {
-    width: auto;
-    padding: 6px 14px;
-    font-size: 11px;
-    letter-spacing: 2px;
-    margin-top: 0;
-  }
+.conv-list { flex:1; overflow-y:auto; }
+.conv-list::-webkit-scrollbar { width:4px; }
+.conv-list::-webkit-scrollbar-thumb { background:var(--border-mid); }
 
-  .error-msg {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 13px;
-    color: var(--danger);
-    margin-top: 10px;
-    min-height: 18px;
-  }
+.avatar { width:40px; height:40px; background:var(--bg-input); border:1px solid var(--border-mid); display:flex; align-items:center; justify-content:center; font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:16px; color:var(--accent); flex-shrink:0; text-transform:uppercase; }
+.conv-item { display:flex; align-items:center; gap:10px; padding:12px 16px; cursor:pointer; border-bottom:1px solid var(--border-subtle); transition:background 0.15s; position:relative; }
+.conv-item:hover { background:var(--bg-card); }
+.conv-item.active { background:var(--bg-card); }
+.conv-item.active::before { content:''; position:absolute; left:0; top:0; bottom:0; width:2px; background:var(--accent); }
+.conv-info { flex:1; overflow:hidden; }
+.conv-name { font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:600; color:var(--text-white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.conv-preview { font-size:12px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+.conv-meta { display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
+.conv-time { font-family:'Barlow Condensed',sans-serif; font-size:10px; color:var(--text-muted); }
+.unread-badge { background:var(--accent); color:#000; font-family:Impact,sans-serif; font-size:10px; min-width:18px; height:18px; display:flex; align-items:center; justify-content:center; padding:0 4px; }
+.empty-state { padding:32px 16px; text-align:center; font-family:'Barlow Condensed',sans-serif; font-size:13px; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase; }
+.blocked-tag { display:inline-block; background:var(--danger-glow); border:1px solid rgba(255,68,68,0.3); color:var(--danger); font-family:'Barlow Condensed',sans-serif; font-size:10px; letter-spacing:1px; padding:1px 6px; text-transform:uppercase; }
 
-  /* ─── MAIN LAYOUT ─── */
-  #app {
-    display: none;
-    position: fixed; inset: 0; z-index: 10;
-    flex-direction: row;
-  }
-  #app.visible { display: flex; }
+/* CHAT AREA */
+.chat-area { flex:1; display:flex; flex-direction:column; height:100%; background:var(--bg-base); min-width:0; }
+.chat-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-muted); }
+.chat-empty-icon { font-size:48px; margin-bottom:16px; opacity:0.3; }
+.chat-empty h2 { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:20px; letter-spacing:4px; text-transform:uppercase; margin-bottom:8px; }
+.chat-empty p { font-family:'Barlow Condensed',sans-serif; font-size:13px; letter-spacing:1px; }
 
-  /* SIDEBAR */
-  .sidebar {
-    width: 300px;
-    min-width: 300px;
-    background: var(--bg-surface);
-    border-right: 1px solid var(--border-subtle);
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
+.chat-header { padding:12px 20px; border-bottom:1px solid var(--border-subtle); background:var(--bg-surface); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.chat-header-left { display:flex; align-items:center; gap:12px; }
+.chat-partner-name { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:18px; letter-spacing:2px; color:var(--text-white); text-transform:uppercase; }
+.chat-partner-meta { font-family:'Barlow Condensed',sans-serif; font-size:12px; color:var(--text-secondary); margin-top:1px; }
+.chat-header-actions { display:flex; gap:8px; align-items:center; }
 
-  .sidebar-header {
-    padding: 16px 16px 12px;
-    border-bottom: 1px solid var(--border-subtle);
-    flex-shrink: 0;
-  }
+.e2e-banner {
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  padding:5px 0; font-family:'Barlow Condensed',sans-serif; font-size:11px;
+  letter-spacing:1.5px; text-transform:uppercase; color:var(--success);
+  background:rgba(68,204,136,0.04); border-bottom:1px solid rgba(68,204,136,0.1);
+  flex-shrink:0; opacity:0.8;
+}
 
-  .sidebar-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
+.messages-wrap { flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; }
+.messages-wrap::-webkit-scrollbar { width:4px; }
+.messages-wrap::-webkit-scrollbar-thumb { background:var(--border-mid); }
 
-  .app-name {
-    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    font-size: 18px;
-    letter-spacing: 3px;
-    color: var(--text-white);
-    text-transform: uppercase;
-  }
-  .app-name span { color: var(--accent); }
+.msg-date-label { text-align:center; font-family:'Barlow Condensed',sans-serif; font-size:11px; color:var(--text-muted); letter-spacing:2px; text-transform:uppercase; margin:12px 0 8px; flex-shrink:0; }
 
-  .user-badge {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 12px;
-    color: var(--text-secondary);
-    letter-spacing: 1px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .user-badge strong {
-    color: var(--accent);
-    font-weight: 600;
-  }
+/* Messages — NO default animation. Only .new-msg gets animated */
+.msg { display:flex; margin-bottom:3px; flex-shrink:0; }
+.msg.out { flex-direction:row-reverse; }
+.msg.new-msg { animation:msgIn 0.18s ease both; }
 
-  .logout-btn {
-    background: none;
-    border: 1px solid var(--border-subtle);
-    color: var(--text-muted);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 4px 8px;
-    cursor: pointer;
-    transition: border-color 0.2s, color 0.2s;
-  }
-  .logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+.msg-bubble { max-width:65%; padding:8px 12px; font-size:14px; line-height:1.5; position:relative; word-break:break-word; }
+.msg.in  .msg-bubble { background:var(--bg-card); border:1px solid var(--border-subtle); color:var(--text-primary); border-left:2px solid var(--border-mid); }
+.msg.out .msg-bubble { background:rgba(91,140,255,0.12); border:1px solid rgba(91,140,255,0.3); color:var(--text-white); border-right:2px solid var(--accent); }
+.msg-time { font-family:'Barlow Condensed',sans-serif; font-size:10px; color:var(--text-muted); margin-top:3px; display:block; }
+.msg.out .msg-time { text-align:right; }
 
-  /* SEARCH */
-  .search-wrap {
-    position: relative;
-  }
-  .search-wrap input {
-    width: 100%;
-    background: var(--bg-input);
-    border: 1px solid var(--border-subtle);
-    color: var(--text-white);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 13px;
-    padding: 8px 12px 8px 32px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .search-wrap input:focus { border-color: var(--accent); }
-  .search-icon {
-    position: absolute;
-    left: 10px; top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
-    font-size: 13px;
-    pointer-events: none;
-  }
+.chat-input-wrap { padding:12px 16px; border-top:1px solid var(--border-subtle); background:var(--bg-surface); display:flex; gap:10px; align-items:flex-end; flex-shrink:0; }
+.chat-input-box { flex:1; background:var(--bg-input); border:1px solid var(--border-subtle); color:var(--text-white); font-family:'Barlow',sans-serif; font-size:14px; padding:10px 14px; outline:none; resize:none; min-height:42px; max-height:120px; transition:border-color 0.2s; line-height:1.4; }
+.chat-input-box:focus { border-color:var(--accent); }
+.chat-input-box::placeholder { color:var(--text-muted); }
+.send-btn { background:var(--accent); border:none; color:#000; font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; padding:10px 18px; cursor:pointer; transition:opacity 0.2s,transform 0.1s; flex-shrink:0; height:42px; }
+.send-btn:hover { opacity:0.85; }
+.send-btn:active { transform:scale(0.97); }
+.send-btn:disabled { opacity:0.3; cursor:not-allowed; }
 
-  /* TABS */
-  .tabs {
-    display: flex;
-    border-bottom: 1px solid var(--border-subtle);
-    flex-shrink: 0;
-  }
-  .tab {
-    flex: 1;
-    padding: 10px;
-    text-align: center;
-    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    font-size: 12px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text-secondary);
-    cursor: pointer;
-    position: relative;
-    transition: color 0.2s;
-  }
-  .tab::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 2px;
-    background: var(--accent);
-    transform: scaleX(0);
-    transition: transform 0.2s;
-  }
-  .tab.active { color: var(--accent); }
-  .tab.active::after { transform: scaleX(1); }
+.blocked-banner { padding:12px 20px; background:var(--danger-glow); border-top:1px solid rgba(255,68,68,0.2); text-align:center; font-family:'Barlow Condensed',sans-serif; font-size:13px; color:var(--danger); letter-spacing:1px; text-transform:uppercase; }
 
-  /* CONVERSATION LIST */
-  .conv-list {
-    flex: 1;
-    overflow-y: auto;
-  }
-  .conv-list::-webkit-scrollbar { width: 4px; }
-  .conv-list::-webkit-scrollbar-track { background: transparent; }
-  .conv-list::-webkit-scrollbar-thumb { background: var(--border-mid); }
+/* RIGHT PANEL — collapsed by default, smooth open */
+.profile-panel {
+  width:0; min-width:0; overflow:hidden; background:var(--bg-surface);
+  border-left:0 solid var(--border-subtle); display:flex; flex-direction:column;
+  transition:width 0.25s ease, min-width 0.25s ease, border-left-width 0.25s;
+  flex-shrink:0;
+}
+.profile-panel.open { width:240px; min-width:240px; border-left-width:1px; }
+.profile-panel-inner { padding:20px; display:flex; flex-direction:column; gap:12px; width:240px; overflow-y:auto; }
+.profile-panel-inner::-webkit-scrollbar { width:4px; }
+.profile-panel-inner::-webkit-scrollbar-thumb { background:var(--border-mid); }
+.profile-avatar-lg { width:60px; height:60px; background:var(--bg-input); border:2px solid var(--border-mid); display:flex; align-items:center; justify-content:center; font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:24px; color:var(--accent); text-transform:uppercase; margin:0 auto; position:relative; }
+.profile-avatar-lg::before { content:''; position:absolute; top:-2px; left:-2px; width:12px; height:12px; border-top:2px solid var(--accent); border-left:2px solid var(--accent); }
+.profile-username { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:16px; letter-spacing:2px; color:var(--text-white); text-transform:uppercase; text-align:center; }
+.profile-row { padding:8px 10px; background:var(--bg-card); border:1px solid var(--border-subtle); position:relative; }
+.profile-row::before { content:''; position:absolute; left:0; top:0; bottom:0; width:2px; background:var(--border-mid); }
+.profile-row-label { font-family:'Barlow Condensed',sans-serif; font-size:10px; letter-spacing:2px; color:var(--text-muted); text-transform:uppercase; }
+.profile-row-val   { font-family:'Barlow Condensed',sans-serif; font-size:14px; color:var(--text-white); margin-top:2px; }
+.profile-section-label { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:10px; letter-spacing:3px; color:var(--text-muted); text-transform:uppercase; border-top:1px solid var(--border-subtle); padding-top:10px; }
 
-  .conv-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    cursor: pointer;
-    border-bottom: 1px solid var(--border-subtle);
-    transition: background 0.15s;
-    position: relative;
-  }
-  .conv-item:hover { background: var(--bg-card); }
-  .conv-item.active { background: var(--bg-card); }
-  .conv-item.active::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 2px;
-    background: var(--accent);
-  }
+.panel-toggle-btn { background:none; border:1px solid var(--border-subtle); color:var(--text-muted); cursor:pointer; width:28px; height:28px; display:flex; align-items:center; justify-content:center; transition:border-color 0.2s,color 0.2s,transform 0.25s; font-size:12px; }
+.panel-toggle-btn:hover { border-color:var(--border-active); color:var(--text-primary); }
+.panel-toggle-btn.open { border-color:var(--accent); color:var(--accent); transform:scaleX(-1); }
 
-  .avatar {
-    width: 40px; height: 40px;
-    background: var(--bg-input);
-    border: 1px solid var(--border-mid);
-    display: flex; align-items: center; justify-content: center;
-    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    font-size: 16px;
-    color: var(--accent);
-    flex-shrink: 0;
-    text-transform: uppercase;
-  }
+/* MODAL */
+.modal-overlay { position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal { width:400px; background:var(--bg-card); border:1px solid var(--border-mid); padding:32px; position:relative; animation:cardIn 0.2s ease; }
+.modal::before { content:''; position:absolute; top:0; left:0; width:24px; height:24px; border-top:2px solid var(--danger); border-left:2px solid var(--danger); }
+.modal-title { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:20px; letter-spacing:3px; text-transform:uppercase; color:var(--text-white); margin-bottom:12px; }
+.modal-body  { font-family:'Barlow',sans-serif; font-size:14px; color:var(--text-secondary); margin-bottom:24px; line-height:1.6; }
+.modal-actions { display:flex; gap:10px; }
+.modal-actions .btn { margin-top:0; flex:1; }
 
-  .conv-info { flex: 1; overflow: hidden; }
-  .conv-name {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-white);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .conv-preview {
-    font-size: 12px;
-    color: var(--text-secondary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-top: 2px;
-  }
-  .conv-meta {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 4px;
-    flex-shrink: 0;
-  }
-  .conv-time {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 10px;
-    color: var(--text-muted);
-    letter-spacing: 0.5px;
-  }
-  .unread-badge {
-    background: var(--accent);
-    color: #000;
-    font-family: Impact, sans-serif;
-    font-size: 10px;
-    min-width: 18px;
-    height: 18px;
-    display: flex; align-items: center; justify-content: center;
-    padding: 0 4px;
-  }
+/* NOTIF */
+.notif { position:fixed; bottom:24px; right:24px; z-index:9000; background:var(--bg-card); border:1px solid var(--border-mid); padding:12px 18px; font-family:'Barlow Condensed',sans-serif; font-size:14px; color:var(--text-white); letter-spacing:0.5px; animation:notifIn 0.3s ease; max-width:280px; }
+.notif::before { content:''; position:absolute; top:0; left:0; width:3px; height:100%; background:var(--accent); }
+.notif.danger::before  { background:var(--danger); }
+.notif.success::before { background:var(--success); }
 
-  /* SEARCH RESULTS */
-  .search-result-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    cursor: pointer;
-    border-bottom: 1px solid var(--border-subtle);
-    transition: background 0.15s;
-  }
-  .search-result-item:hover { background: var(--bg-card); }
+.loading-dots { display:inline-flex; gap:4px; align-items:center; }
+.loading-dots span { width:5px; height:5px; background:var(--accent); animation:dot 1.2s infinite; }
+.loading-dots span:nth-child(2) { animation-delay:0.2s; }
+.loading-dots span:nth-child(3) { animation-delay:0.4s; }
 
-  .empty-state {
-    padding: 32px 16px;
-    text-align: center;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 13px;
-    color: var(--text-muted);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
+@keyframes cardIn  { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+@keyframes msgIn   { from{opacity:0;transform:translateY(5px)}  to{opacity:1;transform:translateY(0)} }
+@keyframes notifIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+@keyframes dot     { 0%,100%{opacity:0.2;transform:scale(0.8)} 50%{opacity:1;transform:scale(1)} }
 
-  /* ─── CHAT AREA ─── */
-  .chat-area {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    background: var(--bg-base);
-    position: relative;
-  }
-
-  .chat-empty {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-  }
-  .chat-empty-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-    opacity: 0.3;
-  }
-  .chat-empty h2 {
-    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    font-size: 20px;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-  .chat-empty p {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 13px;
-    letter-spacing: 1px;
-  }
-
-  /* CHAT HEADER */
-  .chat-header {
-    padding: 12px 20px;
-    border-bottom: 1px solid var(--border-subtle);
-    background: var(--bg-surface);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-  }
-  .chat-header-left { display: flex; align-items: center; gap: 12px; }
-  .chat-header-info {}
-  .chat-partner-name {
-    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    font-size: 18px;
-    letter-spacing: 2px;
-    color: var(--text-white);
-    text-transform: uppercase;
-  }
-  .chat-partner-meta {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-top: 1px;
-  }
-  .chat-header-actions { display: flex; gap: 8px; }
-
-  /* MESSAGES */
-  .messages-wrap {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .messages-wrap::-webkit-scrollbar { width: 4px; }
-  .messages-wrap::-webkit-scrollbar-track { background: transparent; }
-  .messages-wrap::-webkit-scrollbar-thumb { background: var(--border-mid); }
-
-  .msg-group { margin-bottom: 12px; }
-  .msg-group-label {
-    text-align: center;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 11px;
-    color: var(--text-muted);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin: 16px 0 8px;
-  }
-
-  .msg {
-    display: flex;
-    margin-bottom: 3px;
-  }
-  .msg.msg-anim {
-    animation: msgIn 0.2s ease;
-  }
-  .msg.out { flex-direction: row-reverse; }
-
-  .msg-bubble {
-    max-width: 65%;
-    padding: 8px 12px;
-    font-size: 14px;
-    line-height: 1.5;
-    position: relative;
-    word-break: break-word;
-  }
-  .msg.in .msg-bubble {
-    background: var(--bg-card);
-    border: 1px solid var(--border-subtle);
-    color: var(--text-primary);
-    border-left: 2px solid var(--border-mid);
-  }
-  .msg.out .msg-bubble {
-    background: rgba(91,140,255,0.12);
-    border: 1px solid rgba(91,140,255,0.3);
-    color: var(--text-white);
-    border-right: 2px solid var(--accent);
-  }
-  .msg-time {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 10px;
-    color: var(--text-muted);
-    margin-top: 3px;
-    display: block;
-    text-align: right;
-  }
-  .msg.in .msg-time { text-align: left; }
-
-  /* INPUT */
-  .chat-input-wrap {
-    padding: 12px 16px;
-    border-top: 1px solid var(--border-subtle);
-    background: var(--bg-surface);
-    display: flex;
-    gap: 10px;
-    align-items: flex-end;
-    flex-shrink: 0;
-  }
-  .chat-input-box {
-    flex: 1;
-    background: var(--bg-input);
-    border: 1px solid var(--border-subtle);
-    color: var(--text-white);
-    font-family: 'Barlow', sans-serif;
-    font-size: 14px;
-    padding: 10px 14px;
-    outline: none;
-    resize: none;
-    min-height: 42px;
-    max-height: 120px;
-    transition: border-color 0.2s;
-    line-height: 1.4;
-  }
-  .chat-input-box:focus { border-color: var(--accent); }
-  .chat-input-box::placeholder { color: var(--text-muted); }
-
-  .send-btn {
-    background: var(--accent);
-    border: none;
-    color: #000;
-    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    font-size: 13px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 10px 18px;
-    cursor: pointer;
-    transition: opacity 0.2s, transform 0.1s;
-    flex-shrink: 0;
-    height: 42px;
-  }
-  .send-btn:hover { opacity: 0.85; }
-  .send-btn:active { transform: scale(0.97); }
-  .send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-  /* BLOCKED BANNER */
-  .blocked-banner {
-    padding: 16px 20px;
-    background: var(--danger-glow);
-    border-top: 1px solid rgba(255,68,68,0.2);
-    text-align: center;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 13px;
-    color: var(--danger);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-
-  /* PROFILE PANEL */
-  .profile-panel {
-    width: 260px;
-    min-width: 260px;
-    background: var(--bg-surface);
-    border-left: 1px solid var(--border-subtle);
-    display: flex;
-    flex-direction: column;
-    padding: 24px 20px;
-    gap: 16px;
-    overflow-y: auto;
-  }
-  .profile-panel::-webkit-scrollbar { width: 4px; }
-  .profile-panel::-webkit-scrollbar-thumb { background: var(--border-mid); }
-
-  .profile-avatar-lg {
-    width: 72px; height: 72px;
-    background: var(--bg-input);
-    border: 2px solid var(--border-mid);
-    display: flex; align-items: center; justify-content: center;
-    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    font-size: 30px;
-    color: var(--accent);
-    text-transform: uppercase;
-    margin: 0 auto;
-    position: relative;
-  }
-  .profile-avatar-lg::before {
-    content: '';
-    position: absolute; top: -2px; left: -2px;
-    width: 16px; height: 16px;
-    border-top: 2px solid var(--accent);
-    border-left: 2px solid var(--accent);
-  }
-
-  .profile-username {
-    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    font-size: 20px;
-    letter-spacing: 2px;
-    color: var(--text-white);
-    text-transform: uppercase;
-    text-align: center;
-  }
-
-  .profile-row {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    padding: 10px 12px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-subtle);
-    position: relative;
-  }
-  .profile-row::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 2px;
-    background: var(--border-mid);
-  }
-  .profile-row-label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-  }
-  .profile-row-val {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 15px;
-    color: var(--text-white);
-  }
-
-  .profile-section-label {
-    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    font-size: 10px;
-    letter-spacing: 3px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    border-top: 1px solid var(--border-subtle);
-    padding-top: 12px;
-  }
-
-  /* MODAL */
-  .modal-overlay {
-    position: fixed; inset: 0; z-index: 500;
-    background: rgba(0,0,0,0.85);
-    display: none;
-    align-items: center;
-    justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    width: 400px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-mid);
-    padding: 32px;
-    position: relative;
-    animation: cardIn 0.2s ease;
-  }
-  .modal::before {
-    content: '';
-    position: absolute; top: 0; left: 0;
-    width: 24px; height: 24px;
-    border-top: 2px solid var(--danger);
-    border-left: 2px solid var(--danger);
-  }
-  .modal-title {
-    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    font-size: 20px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text-white);
-    margin-bottom: 12px;
-  }
-  .modal-body {
-    font-family: 'Barlow', sans-serif;
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin-bottom: 24px;
-    line-height: 1.6;
-  }
-  .modal-actions { display: flex; gap: 10px; }
-  .modal-actions .btn { margin-top: 0; flex: 1; }
-
-  /* NOTIFICATION */
-  .notif {
-    position: fixed;
-    bottom: 24px; right: 24px;
-    z-index: 9000;
-    background: var(--bg-card);
-    border: 1px solid var(--border-mid);
-    padding: 12px 18px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 14px;
-    color: var(--text-white);
-    letter-spacing: 0.5px;
-    animation: notifIn 0.3s ease;
-    max-width: 280px;
-  }
-  .notif::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 3px; height: 100%;
-    background: var(--accent);
-  }
-  .notif.danger::before { background: var(--danger); }
-  .notif.success::before { background: var(--success); }
-
-  @keyframes cardIn {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-  @keyframes msgIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes notifIn {
-    from { opacity: 0; transform: translateX(20px); }
-    to   { opacity: 1; transform: translateX(0); }
-  }
-
-  /* LOADING */
-  .loading-dots {
-    display: inline-flex; gap: 4px; align-items: center;
-  }
-  .loading-dots span {
-    width: 5px; height: 5px;
-    background: var(--accent);
-    animation: dot 1.2s infinite;
-  }
-  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes dot {
-    0%, 100% { opacity: 0.2; transform: scale(0.8); }
-    50%       { opacity: 1;   transform: scale(1); }
-  }
-
-  .grade-tag {
-    display: inline-block;
-    background: var(--accent-glow);
-    border: 1px solid rgba(91,140,255,0.3);
-    color: var(--accent);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 11px;
-    letter-spacing: 1px;
-    padding: 2px 8px;
-    text-transform: uppercase;
-  }
-
-  .blocked-tag {
-    display: inline-block;
-    background: var(--danger-glow);
-    border: 1px solid rgba(255,68,68,0.3);
-    color: var(--danger);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 10px;
-    letter-spacing: 1px;
-    padding: 1px 6px;
-    text-transform: uppercase;
-  }
-
-  /* hide tab panels */
-  .tab-panel { display: none; }
-  .tab-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
-
-  .typing-indicator {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 12px;
-    color: var(--text-muted);
-    padding: 0 20px 8px;
-    letter-spacing: 1px;
-    min-height: 24px;
-  }
-  /* APPENDED
-  /* Only animate NEW messages, not the whole batch on load */
-  .msg-anim {
-    animation: msgIn 0.18s ease forwards;
-  }
-  .msg:not(.msg-anim) {
-    opacity: 1 !important;
-    transform: none !important;
-    animation: none !important;
-  }
-
-  .e2e-notice {
-    text-align: center;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 11px;
-    letter-spacing: 1px;
-    color: var(--text-muted);
-    padding: 6px 16px;
-    border-top: 1px solid var(--border-subtle);
-    background: var(--bg-surface);
-  }
-
-  .profile-panel {
-    transition: width 0.2s ease, min-width 0.2s ease, opacity 0.2s ease;
-  }
+.login-logo-top { font-family:'Barlow Condensed',sans-serif; font-size:11px; letter-spacing:4px; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px; }
+.login-title-big { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:64px; letter-spacing:4px; color:var(--accent); text-transform:uppercase; line-height:1; margin-bottom:36px; }
 </style>
 </head>
 <body>
 
 <!-- LOGIN -->
 <div id="login-screen">
-  <div class="login-box">
-    <div class="login-logo">Dark School Net</div>
-    <div class="login-title">DSN <span>CHAT</span></div>
-    <div class="field">
-      <div class="field-label">Benutzername</div>
-      <input type="text" id="login-user" placeholder="shadow_felix" autocomplete="off" />
+
+  <!-- HERO BANNER -->
+  <div class="login-hero">
+    <div class="hero-eyebrow">Messenger</div>
+    <div class="hero-headline">Chatten mit<em>der ganzen Schule.</em></div>
+    <div class="hero-sub">
+      Dein privates Schulnetzwerk — <strong>nur für Schüler deiner Schule.</strong><br>
+      Nachrichten, die sonst niemand lesen kann.
     </div>
-    <div class="field">
-      <div class="field-label">Passwort</div>
-      <input type="password" id="login-pass" placeholder="••••••••" />
+    <div class="hero-features">
+      <div class="hero-feature">Ende-zu-Ende verschlüsselte Nachrichten</div>
+      <div class="hero-feature">Nur Schüler deiner Schule sichtbar</div>
+      <div class="hero-feature">User blockieren & vollständige Privatsphäre</div>
+      <div class="hero-feature">Kein Account bei externen Diensten nötig</div>
     </div>
-    <button class="btn" onclick="doLogin()"><span>EINLOGGEN</span></button>
-    <div class="error-msg" id="login-error"></div>
+    <div class="hero-register-hint">
+      <div>Noch kein Account? Registriere dich zuerst im <strong>Dark School Net Account Management</strong> — danach kannst du dich hier einloggen.</div>
+    </div>
   </div>
+
+  <!-- LOGIN FORM -->
+  <div class="login-side">
+    <div class="login-box">
+      
+      <div class="login-logo-top">Dark School Net — Chat</div>
+      <div class="login-title-big">CHAT</div>
+      <div class="field"><div class="field-label">Benutzername</div><input type="text" id="login-user" placeholder="shadow_felix" autocomplete="off" /></div>
+      <div class="field"><div class="field-label">Passwort</div><input type="password" id="login-pass" placeholder="••••••••" /></div>
+      <button class="btn" onclick="doLogin()"><span>EINLOGGEN</span></button>
+      <div class="error-msg" id="login-error"></div>
+    </div>
+  </div>
+
 </div>
 
-<!-- MAIN APP -->
+<!-- APP -->
 <div id="app">
 
   <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-top">
-        <div class="app-name">DSN <span>CHAT</span></div>
+        <div class="app-name">DARK SCHOOL <span>NET</span></div>
         <button class="logout-btn" onclick="doLogout()">LOGOUT</button>
       </div>
-      <div class="user-badge">Eingeloggt als <strong id="hdr-username">—</strong></div>
+      <div class="user-badge">Eingeloggt als <strong id="hdr-username">—</strong> &nbsp;<span id="hdr-school" style="color:var(--text-muted);font-size:10px;letter-spacing:1px;border:1px solid var(--border-subtle);padding:1px 5px;"></span></div>
     </div>
 
     <div class="tabs">
-      <div class="tab active" id="tab-chats" onclick="switchTab('chats')">CHATS</div>
-      <div class="tab" id="tab-search" onclick="switchTab('search')">USERS</div>
-      <div class="tab" id="tab-blocked" onclick="switchTab('blocked')">BLOCKIERT</div>
+      <div class="tab active" id="tab-chats"   onclick="switchTab('chats')">CHATS</div>
+      <div class="tab"        id="tab-users"   onclick="switchTab('users')">USERS</div>
+      <div class="tab"        id="tab-blocked" onclick="switchTab('blocked')">BLOCKIERT</div>
     </div>
 
-    <!-- CHATS TAB -->
     <div class="tab-panel active" id="panel-chats">
-      <div class="conv-list" id="conv-list">
-        <div class="empty-state">Noch keine Chats</div>
-      </div>
+      <div class="conv-list" id="conv-list"><div class="empty-state">Noch keine Chats</div></div>
     </div>
 
-    <!-- SEARCH TAB -->
-    <div class="tab-panel" id="panel-search">
-      <div class="sidebar-header" style="border-bottom:1px solid var(--border-subtle);">
+    <div class="tab-panel" id="panel-users">
+      <div class="sidebar-header" style="border-bottom:1px solid var(--border-subtle);padding:10px 16px;">
         <div class="search-wrap">
           <span class="search-icon">⌕</span>
-          <input type="text" id="search-input" placeholder="Filtern..." oninput="doSearch()" />
+          <input type="text" id="search-input" placeholder="Suchen..." oninput="doSearch()" />
         </div>
       </div>
-      <div class="conv-list" id="search-results">
-        <div class="empty-state"><span class="loading-dots"><span></span><span></span><span></span></span></div>
-      </div>
+      <div class="conv-list" id="users-list"><div class="empty-state"><span class="loading-dots"><span></span><span></span><span></span></span></div></div>
     </div>
 
-    <!-- BLOCKED TAB -->
     <div class="tab-panel" id="panel-blocked">
-      <div class="conv-list" id="blocked-list">
-        <div class="empty-state">Keine blockierten User</div>
-      </div>
+      <div class="conv-list" id="blocked-list"><div class="empty-state">Keine blockierten User</div></div>
     </div>
-
   </div>
 
-  <!-- CHAT AREA -->
-  <div class="chat-area" id="chat-area">
+  <!-- CHAT -->
+  <div class="chat-area">
     <div class="chat-empty" id="chat-empty">
       <div class="chat-empty-icon">◼</div>
-      <h2>DSN Chat</h2>
+      <h2>Dark School Net</h2>
       <p>Wähle einen Chat oder suche einen User</p>
     </div>
-    <div id="chat-view" style="display:none; flex-direction:column; height:100%;">
+
+    <div id="chat-view" style="display:none;flex-direction:column;height:100%;">
       <div class="chat-header">
         <div class="chat-header-left">
           <div class="avatar" id="chat-avatar">?</div>
-          <div class="chat-header-info">
+          <div>
             <div class="chat-partner-name" id="chat-name">—</div>
             <div class="chat-partner-meta" id="chat-meta">—</div>
           </div>
         </div>
         <div class="chat-header-actions">
-          <button class="btn btn-sm" id="profile-toggle-btn" onclick="toggleProfilePanel()" style="border-color:var(--border-mid);color:var(--text-secondary);"><span>INFO ▸</span></button>
-          <button class="btn btn-sm btn-danger" id="block-btn" onclick="toggleBlock()"><span id="block-btn-txt">BLOCKIEREN</span></button>
+          <button class="btn btn-sm btn-danger" onclick="toggleBlock()"><span id="block-btn-txt">BLOCKIEREN</span></button>
+          <button class="panel-toggle-btn" id="panel-toggle-btn" onclick="toggleProfilePanel()" title="Profil anzeigen">▸</button>
         </div>
       </div>
+
+      <div class="e2e-banner">🔒 &nbsp;Nachrichten sind Ende-zu-Ende verschlüsselt</div>
+
       <div class="messages-wrap" id="messages-wrap"></div>
-      <div id="blocked-banner" class="blocked-banner" style="display:none;">Du hast diesen User blockiert — Nachrichten deaktiviert</div>
+      <div id="blocked-banner"       class="blocked-banner" style="display:none;">Du hast diesen User blockiert — Nachrichten deaktiviert</div>
       <div id="youre-blocked-banner" class="blocked-banner" style="display:none;">Dieser User hat dich blockiert</div>
-      <div class="e2e-notice" id="e2e-notice">🔒 Nachrichten sind Ende-zu-Ende verschlüsselt</div>
       <div class="chat-input-wrap" id="input-wrap">
         <textarea class="chat-input-box" id="msg-input" placeholder="Nachricht schreiben..." rows="1" onkeydown="inputKeydown(event)" oninput="autoResize(this)"></textarea>
         <button class="send-btn" id="send-btn" onclick="sendMessage()">SEND</button>
@@ -952,697 +358,393 @@
     </div>
   </div>
 
-  <!-- PROFILE PANEL -->
-  <div class="profile-panel" id="profile-panel" style="display:none;">
-    <button onclick="toggleProfilePanel()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-align:right;align-self:flex-end;padding:0;text-transform:uppercase;">✕ SCHLIESSEN</button>
-    <div class="profile-avatar-lg" id="prof-avatar">?</div>
-    <div class="profile-username" id="prof-username">—</div>
-    <div class="profile-row">
-      <div class="profile-row-label">Echter Name</div>
-      <div class="profile-row-val" id="prof-realname">—</div>
+  <!-- RIGHT PANEL -->
+  <div class="profile-panel" id="profile-panel">
+    <div class="profile-panel-inner">
+      <div class="profile-avatar-lg" id="prof-avatar">?</div>
+      <div class="profile-username"  id="prof-username">—</div>
+      <div class="profile-row"><div class="profile-row-label">Echter Name</div><div class="profile-row-val" id="prof-realname">—</div></div>
+      <div class="profile-row"><div class="profile-row-label">Klasse</div><div class="profile-row-val" id="prof-grade">—</div></div>
+      <div class="profile-row"><div class="profile-row-label">Dabei seit</div><div class="profile-row-val" id="prof-since">—</div></div>
+      <div class="profile-section-label">AKTIONEN</div>
+      <button class="btn btn-sm btn-danger" onclick="toggleBlock()"><span id="prof-block-txt">BLOCKIEREN</span></button>
     </div>
-    <div class="profile-row">
-      <div class="profile-row-label">Klasse</div>
-      <div class="profile-row-val" id="prof-grade">—</div>
-    </div>
-    <div class="profile-row">
-      <div class="profile-row-label">Dabei seit</div>
-      <div class="profile-row-val" id="prof-since">—</div>
-    </div>
-    <div class="profile-section-label">AKTIONEN</div>
-    <button class="btn btn-sm btn-danger" id="prof-block-btn" onclick="toggleBlock()"><span id="prof-block-txt">BLOCKIEREN</span></button>
   </div>
-
 </div>
 
-<!-- CONFIRM MODAL -->
+<!-- MODAL -->
 <div class="modal-overlay" id="confirm-modal">
   <div class="modal">
     <div class="modal-title" id="modal-title">BESTÄTIGEN</div>
-    <div class="modal-body" id="modal-body">Bist du sicher?</div>
+    <div class="modal-body"  id="modal-body">Bist du sicher?</div>
     <div class="modal-actions">
       <button class="btn btn-danger" id="modal-confirm-btn"><span>JA</span></button>
-      <button class="btn" onclick="closeModal()"><span>ABBRECHEN</span></button>
+      <button class="btn btn-ghost"  onclick="closeModal()"><span>ABBRECHEN</span></button>
     </div>
   </div>
 </div>
 
-
 <script>
-/* ─── SUPABASE ─── */
 const SUPABASE_URL  = 'https://sigjwzivusuzmhvixtbm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpZ2p3eml2dXN1em1odml4dGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNTI3MDksImV4cCI6MjA4ODcyODcwOX0.j0yB-NYM5HOkfKVBz24rWMBQNF8w-uEFjX55UGeD30E';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-/* ─── PASSWORD CRYPTO ─── */
-function generateSalt() {
-  const b = new Uint8Array(32); crypto.getRandomValues(b);
-  return Array.from(b).map(x => x.toString(16).padStart(2,'0')).join('');
+/* PASSWORD */
+async function hashPassword(pw, saltHex) {
+  const enc=new TextEncoder(), salt=new Uint8Array(saltHex.match(/.{2}/g).map(h=>parseInt(h,16)));
+  const k=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveBits']);
+  const b=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations:200000},k,256);
+  return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
 }
-async function hashPassword(password, saltHex) {
-  const enc  = new TextEncoder();
-  const salt = new Uint8Array(saltHex.match(/.{2}/g).map(h => parseInt(h,16)));
-  const key  = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits(
-    { name:'PBKDF2', hash:'SHA-256', salt, iterations:200000 }, key, 256
-  );
-  return Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-async function verifyPassword(password, saltHex, storedHash) {
-  return (await hashPassword(password, saltHex)) === storedHash;
-}
+async function verifyPassword(pw,saltHex,hash){return(await hashPassword(pw,saltHex))===hash;}
 
-/* ─── E2E CRYPTO ─── */
-
-// Derive AES key from login-password to wrap/unwrap the ECDH private key
-async function deriveAESFromPassword(password, saltHex) {
-  const enc  = new TextEncoder();
-  const salt = new Uint8Array(saltHex.match(/.{2}/g).map(h => parseInt(h,16)));
-  const km   = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
-  return crypto.subtle.deriveKey(
-    { name:'PBKDF2', hash:'SHA-256', salt, iterations:200000 },
-    km, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']
-  );
+/* E2E CRYPTO */
+async function deriveAESFromPassword(pw,saltHex){
+  const enc=new TextEncoder(),salt=new Uint8Array(saltHex.match(/.{2}/g).map(h=>parseInt(h,16)));
+  const km=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt,iterations:200000},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
 }
-
-async function encryptBlob(arrayBuffer, aesKey) {
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const ct = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, aesKey, arrayBuffer);
-  return btoa(String.fromCharCode(...iv)) + '.' + btoa(String.fromCharCode(...new Uint8Array(ct)));
+async function encryptBlob(buf,k){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,buf);
+  return btoa(String.fromCharCode(...iv))+'.'+btoa(String.fromCharCode(...new Uint8Array(ct)));
 }
-
-async function decryptBlob(blob, aesKey) {
-  const [ivB64, ctB64] = blob.split('.');
-  const iv = Uint8Array.from(atob(ivB64), c => c.charCodeAt(0));
-  const ct = Uint8Array.from(atob(ctB64), c => c.charCodeAt(0));
-  return crypto.subtle.decrypt({ name:'AES-GCM', iv }, aesKey, ct);
+async function decryptBlob(blob,k){
+  const[a,b]=blob.split('.');
+  const iv=Uint8Array.from(atob(a),c=>c.charCodeAt(0)),ct=Uint8Array.from(atob(b),c=>c.charCodeAt(0));
+  return crypto.subtle.decrypt({name:'AES-GCM',iv},k,ct);
+}
+async function genKeypair(){return crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveKey']);}
+async function exportPubB64(pub){const r=await crypto.subtle.exportKey('raw',pub);return btoa(String.fromCharCode(...new Uint8Array(r)));}
+async function importPubB64(b64){const r=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));return crypto.subtle.importKey('raw',r,{name:'ECDH',namedCurve:'P-256'},false,[]);}
+async function deriveShared(priv,pub){return crypto.subtle.deriveKey({name:'ECDH',public:pub},priv,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
+async function encryptMsg(text,k){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(text));
+  return 'E2E.'+btoa(String.fromCharCode(...iv))+'.'+btoa(String.fromCharCode(...new Uint8Array(ct)));
+}
+async function decryptMsg(c,k){
+  if(!c||!c.startsWith('E2E.'))return c;
+  try{const[,a,b]=c.split('.');const iv=Uint8Array.from(atob(a),x=>x.charCodeAt(0)),ct=Uint8Array.from(atob(b),x=>x.charCodeAt(0));return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv},k,ct));}catch{return'🔒';}
 }
 
-async function generateECDHKeypair() {
-  return crypto.subtle.generateKey({ name:'ECDH', namedCurve:'P-256' }, true, ['deriveKey']);
-}
+/* SESSION */
+function saveSession(u){sessionStorage.setItem('dsn_session',JSON.stringify(u));}
+function getSession(){try{return JSON.parse(sessionStorage.getItem('dsn_session'));}catch{return null;}}
+function clearSession(){sessionStorage.removeItem('dsn_session');}
 
-async function exportPublicKeyB64(pubKey) {
-  const raw = await crypto.subtle.exportKey('raw', pubKey);
-  return btoa(String.fromCharCode(...new Uint8Array(raw)));
-}
+/* STATE */
+let me=null, myPrivateKey=null, currentPartner=null, currentSharedKey=null;
+let pollTimer=null, convPollTimer=null, blockedList=[], searchTimer=null;
+let allUsersCache=[], profileOpen=false;
+// Incremental poll: track the created_at of the newest fetched message
+let lastMsgTs=null;
 
-async function importPublicKeyB64(b64) {
-  const raw = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-  return crypto.subtle.importKey('raw', raw, { name:'ECDH', namedCurve:'P-256' }, false, []);
-}
-
-async function deriveSharedAES(myPrivKey, theirPubKey) {
-  return crypto.subtle.deriveKey(
-    { name:'ECDH', public: theirPubKey },
-    myPrivKey,
-    { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']
-  );
-}
-
-async function encryptMsg(text, sharedKey) {
-  const iv  = crypto.getRandomValues(new Uint8Array(12));
-  const enc = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, sharedKey, new TextEncoder().encode(text));
-  return 'E2E.' + btoa(String.fromCharCode(...iv)) + '.' + btoa(String.fromCharCode(...new Uint8Array(enc)));
-}
-
-async function decryptMsg(cipher, sharedKey) {
-  if (!cipher || !cipher.startsWith('E2E.')) return cipher;
-  try {
-    const parts = cipher.split('.');
-    const iv  = Uint8Array.from(atob(parts[1]), c => c.charCodeAt(0));
-    const ct  = Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0));
-    const plain = await crypto.subtle.decrypt({ name:'AES-GCM', iv }, sharedKey, ct);
-    return new TextDecoder().decode(plain);
-  } catch { return '🔒 [nicht entschlüsselbar]'; }
-}
-
-/* ─── SESSION ─── */
-function saveSession(user)  { sessionStorage.setItem('dsn_session', JSON.stringify(user)); }
-function getSession()       { try { return JSON.parse(sessionStorage.getItem('dsn_session')); } catch { return null; } }
-function clearSession()     { sessionStorage.removeItem('dsn_session'); }
-
-// We store the plaintext password only in memory (never persisted) so we can
-// re-derive the AES wrapping key after a page reload via session re-login.
-// On session-restore (tab refresh) the user must re-login — sessions are tab-scoped anyway.
-let sessionPassword = null;
-
-/* ─── STATE ─── */
-let me              = null;
-let myPrivateKey    = null;  // ECDH CryptoKey — in memory only
-let currentPartner  = null;
-let currentSharedKey = null; // AES CryptoKey for current chat
-let pollTimer       = null;
-let convPollTimer   = null;
-let allMessages     = [];
-let blockedList     = [];
-let searchTimer     = null;
-let renderedMsgIds  = new Set();  // track rendered messages to avoid re-render jitter
-let chatOpenPartner = null;       // id of partner when chat was first opened (to detect switch)
-
-/* ─── INIT ─── */
-window.addEventListener('DOMContentLoaded', async () => {
-  // No auto-restore from session — password needed for key derivation, so always require login
-  document.getElementById('login-pass').addEventListener('keydown', e => {
-    if (e.key === 'Enter') doLogin();
-  });
-  document.getElementById('login-user').addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('login-pass').focus();
-  });
+window.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+  document.getElementById('login-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('login-pass').focus();});
 });
 
-/* ─── LOGIN ─── */
-async function doLogin() {
-  const user = document.getElementById('login-user').value.trim().toLowerCase();
-  const pass = document.getElementById('login-pass').value;
-  const err  = document.getElementById('login-error');
-  err.textContent = '';
-
-  if (!user || !pass) { err.textContent = 'Alle Felder ausfüllen.'; return; }
-
-  const loginBtn = document.querySelector('#login-screen .btn span');
-  loginBtn.innerHTML = '<span class="loading-dots"><span></span><span></span><span></span></span>';
-
-  try {
-    const { data, error } = await db.from('dsn_users').select('*').eq('username', user).single();
-    if (error || !data) { err.textContent = 'Benutzername nicht gefunden.'; loginBtn.textContent = 'EINLOGGEN'; return; }
-    const ok = await verifyPassword(pass, data.salt, data.password_hash);
-    if (!ok) { err.textContent = 'Falsches Passwort.'; loginBtn.textContent = 'EINLOGGEN'; return; }
-    me = data;
-    sessionPassword = pass;
+/* LOGIN */
+async function doLogin(){
+  const user=document.getElementById('login-user').value.trim().toLowerCase();
+  const pass=document.getElementById('login-pass').value;
+  const err=document.getElementById('login-error');
+  err.textContent='';
+  if(!user||!pass){err.textContent='Alle Felder ausfüllen.';return;}
+  const s=document.querySelector('#login-screen .btn span');
+  s.innerHTML='<span class="loading-dots"><span></span><span></span><span></span></span>';
+  try{
+    const{data,error}=await db.from('dsn_users').select('*').eq('username',user).single();
+    if(error||!data){err.textContent='Benutzername nicht gefunden.';s.textContent='EINLOGGEN';return;}
+    if(!await verifyPassword(pass,data.salt,data.password_hash)){err.textContent='Falsches Passwort.';s.textContent='EINLOGGEN';return;}
+    me=data;
     await setupE2EKeys(pass);
     saveSession(me);
     await enterApp();
-  } catch(e) {
-    console.error(e);
-    err.textContent = 'Verbindungsfehler.';
-    loginBtn.textContent = 'EINLOGGEN';
-  }
+  }catch(e){console.error(e);err.textContent='Verbindungsfehler.';s.textContent='EINLOGGEN';}
 }
 
-/* ─── E2E KEY SETUP ─── */
-async function setupE2EKeys(password) {
-  const aesKey = await deriveAESFromPassword(password, me.salt);
-
-  if (!me.encrypted_private_key || !me.public_key) {
-    // First time — generate keypair
-    showNotif('Schlüssel werden generiert…');
-    const keypair  = await generateECDHKeypair();
-    const pubB64   = await exportPublicKeyB64(keypair.publicKey);
-    const privPkcs8 = await crypto.subtle.exportKey('pkcs8', keypair.privateKey);
-    const encPriv  = await encryptBlob(privPkcs8, aesKey);
-
-    await db.from('dsn_users').update({ public_key: pubB64, encrypted_private_key: encPriv }).eq('id', me.id);
-    me.public_key              = pubB64;
-    me.encrypted_private_key   = encPriv;
-    myPrivateKey               = keypair.privateKey;
-    showNotif('🔒 E2E-Schlüssel erstellt', 'success');
-  } else {
-    // Decrypt existing private key
-    try {
-      const privPkcs8 = await decryptBlob(me.encrypted_private_key, aesKey);
-      myPrivateKey = await crypto.subtle.importKey(
-        'pkcs8', privPkcs8, { name:'ECDH', namedCurve:'P-256' }, false, ['deriveKey']
-      );
-    } catch {
-      // Key corrupt or wrong password — regenerate (shouldn't happen normally)
-      showNotif('Schlüssel-Fehler — neuer Key wird generiert', 'warning');
-      const keypair  = await generateECDHKeypair();
-      const pubB64   = await exportPublicKeyB64(keypair.publicKey);
-      const privPkcs8 = await crypto.subtle.exportKey('pkcs8', keypair.privateKey);
-      const encPriv  = await encryptBlob(privPkcs8, aesKey);
-      await db.from('dsn_users').update({ public_key: pubB64, encrypted_private_key: encPriv }).eq('id', me.id);
-      me.public_key            = pubB64;
-      me.encrypted_private_key = encPriv;
-      myPrivateKey             = keypair.privateKey;
+async function setupE2EKeys(pw){
+  const aes=await deriveAESFromPassword(pw,me.salt);
+  if(!me.encrypted_private_key||!me.public_key){
+    const kp=await genKeypair();
+    const pub=await exportPubB64(kp.publicKey);
+    const enc=await encryptBlob(await crypto.subtle.exportKey('pkcs8',kp.privateKey),aes);
+    await db.from('dsn_users').update({public_key:pub,encrypted_private_key:enc}).eq('id',me.id);
+    me.public_key=pub;me.encrypted_private_key=enc;myPrivateKey=kp.privateKey;
+  }else{
+    try{
+      myPrivateKey=await crypto.subtle.importKey('pkcs8',await decryptBlob(me.encrypted_private_key,aes),{name:'ECDH',namedCurve:'P-256'},false,['deriveKey']);
+    }catch{
+      const kp=await genKeypair();
+      const pub=await exportPubB64(kp.publicKey);
+      const enc=await encryptBlob(await crypto.subtle.exportKey('pkcs8',kp.privateKey),aes);
+      await db.from('dsn_users').update({public_key:pub,encrypted_private_key:enc}).eq('id',me.id);
+      me.public_key=pub;me.encrypted_private_key=enc;myPrivateKey=kp.privateKey;
     }
   }
 }
 
-async function enterApp() {
-  document.getElementById('login-screen').style.display = 'none';
+async function enterApp(){
+  document.getElementById('login-screen').style.display='none';
   document.getElementById('app').classList.add('visible');
-  document.getElementById('hdr-username').textContent = me.username;
+  document.getElementById('hdr-username').textContent=me.username;
+  if(me.school){const sb=document.getElementById('hdr-school');if(sb)sb.textContent=me.school;}
   await loadBlockedList();
   await loadConversations();
+  await loadAllUsers();
   startConvPoll();
 }
 
-function doLogout() {
-  clearSession();
-  clearInterval(pollTimer);
-  clearInterval(convPollTimer);
-  me = null; myPrivateKey = null; currentPartner = null; currentSharedKey = null;
-  sessionPassword = null;
+function doLogout(){
+  clearSession();clearInterval(pollTimer);clearInterval(convPollTimer);
+  me=null;myPrivateKey=null;currentPartner=null;currentSharedKey=null;lastMsgTs=null;
   document.getElementById('app').classList.remove('visible');
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('login-user').value = '';
-  document.getElementById('login-pass').value = '';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('login-user').value='';document.getElementById('login-pass').value='';
 }
 
-function toggleProfilePanel() {
-  const pp  = document.getElementById('profile-panel');
-  const btn = document.getElementById('profile-toggle-btn');
-  const open = pp.style.display !== 'none';
-  pp.style.display = open ? 'none' : 'flex';
-  if (btn) btn.querySelector('span').textContent = open ? 'INFO ▸' : 'INFO ◂';
+/* PROFILE PANEL */
+function toggleProfilePanel(){
+  profileOpen=!profileOpen;
+  document.getElementById('profile-panel').classList.toggle('open',profileOpen);
+  document.getElementById('panel-toggle-btn').classList.toggle('open',profileOpen);
 }
 
-/* ─── BLOCKED ─── */
-async function loadBlockedList() {
-  const { data } = await db.from('dsn_blocked').select('*').eq('blocker_id', me.id);
-  blockedList = data || [];
+/* BLOCKED */
+async function loadBlockedList(){
+  const{data}=await db.from('dsn_blocked').select('*').eq('blocker_id',me.id);
+  blockedList=data||[];
   renderBlockedTab();
 }
-
-async function renderBlockedTab() {
-  const list = document.getElementById('blocked-list');
-  if (!blockedList.length) { list.innerHTML = '<div class="empty-state">Keine blockierten User</div>'; return; }
-  const ids = blockedList.map(b => b.blocked_id);
-  const { data: users } = await db.from('dsn_users').select('id,username,real_name,grade').in('id', ids);
-  const map = {};
-  (users||[]).forEach(u => map[u.id] = u);
-  list.innerHTML = blockedList.map(b => {
-    const u = map[b.blocked_id] || {};
-    return `<div class="conv-item" onclick="openChatWith('${b.blocked_id}')">
-      <div class="avatar">${(u.username||'?')[0]}</div>
-      <div class="conv-info">
-        <div class="conv-name">${u.username||'unbekannt'}</div>
-        <div class="conv-preview">${u.real_name||''} · Klasse ${u.grade||'?'}</div>
-      </div>
-      <span class="blocked-tag">BLOCKIERT</span>
-    </div>`;
-  }).join('');
+async function renderBlockedTab(){
+  const list=document.getElementById('blocked-list');
+  if(!blockedList.length){list.innerHTML='<div class="empty-state">Keine blockierten User</div>';return;}
+  const ids=blockedList.map(b=>b.blocked_id);
+  const{data:users}=await db.from('dsn_users').select('id,username,real_name,grade').in('id',ids);
+  const map={};(users||[]).forEach(u=>map[u.id]=u);
+  list.innerHTML=blockedList.map(b=>{const u=map[b.blocked_id]||{};
+    return`<div class="conv-item" onclick="openChatWith('${b.blocked_id}')">
+      <div class="avatar">${(u.username||'?')[0].toUpperCase()}</div>
+      <div class="conv-info"><div class="conv-name">${esc(u.username||'?')}</div>
+      <div class="conv-preview">${esc(u.real_name||'')} · Klasse ${u.grade||'?'}</div></div>
+      <span class="blocked-tag">BLOCKIERT</span></div>`;}).join('');
 }
+function iBlocked(id){return blockedList.some(b=>b.blocked_id===id);}
+async function isBlockedBy(uid){const{data}=await db.from('dsn_blocked').select('id').eq('blocker_id',uid).eq('blocked_id',me.id).maybeSingle();return!!data;}
 
-function iBlocked(userId) {
-  return blockedList.some(b => b.blocked_id === userId);
-}
-
-async function isBlockedByPartner(userId) {
-  const { data } = await db.from('dsn_blocked').select('id').eq('blocker_id', userId).eq('blocked_id', me.id).maybeSingle();
-  return !!data;
-}
-
-/* ─── TOGGLE BLOCK ─── */
-async function toggleBlock() {
-  if (!currentPartner) return;
-  const blocked = iBlocked(currentPartner.id);
-  openModal(
-    blocked ? 'BLOCKIERUNG AUFHEBEN' : 'USER BLOCKIEREN',
-    blocked
-      ? `Möchtest du <strong>${currentPartner.username}</strong> wirklich entsperren?`
-      : `Möchtest du <strong>${currentPartner.username}</strong> blockieren? Sie können dir dann nicht mehr schreiben.`,
-    async () => {
+async function toggleBlock(){
+  if(!currentPartner)return;
+  const bl=iBlocked(currentPartner.id);
+  openModal(bl?'BLOCKIERUNG AUFHEBEN':'USER BLOCKIEREN',
+    bl?`<strong>${currentPartner.username}</strong> wirklich entsperren?`
+      :`<strong>${currentPartner.username}</strong> blockieren? Sie können dir nicht mehr schreiben.`,
+    async()=>{
       closeModal();
-      if (blocked) {
-        await db.from('dsn_blocked').delete().eq('blocker_id', me.id).eq('blocked_id', currentPartner.id);
-        showNotif(`${currentPartner.username} entsperrt`, 'success');
-      } else {
-        await db.from('dsn_blocked').insert({ blocker_id: me.id, blocked_id: currentPartner.id });
-        showNotif(`${currentPartner.username} blockiert`, 'danger');
-      }
-      await loadBlockedList();
-      updateBlockUI();
-    }
-  );
+      if(bl){await db.from('dsn_blocked').delete().eq('blocker_id',me.id).eq('blocked_id',currentPartner.id);showNotif(`${currentPartner.username} entsperrt`,'success');}
+      else{await db.from('dsn_blocked').insert({blocker_id:me.id,blocked_id:currentPartner.id});showNotif(`${currentPartner.username} blockiert`,'danger');}
+      await loadBlockedList();updateBlockUI();
+    });
+}
+function updateBlockUI(){
+  if(!currentPartner)return;
+  const bl=iBlocked(currentPartner.id);
+  const t=bl?'ENTSPERREN':'BLOCKIEREN';
+  document.getElementById('block-btn-txt').textContent=t;
+  document.getElementById('prof-block-txt').textContent=t;
+  document.getElementById('blocked-banner').style.display=bl?'block':'none';
+  if(!bl)document.getElementById('input-wrap').style.display='flex';
 }
 
-function updateBlockUI() {
-  if (!currentPartner) return;
-  const blocked = iBlocked(currentPartner.id);
-  const txt = blocked ? 'ENTSPERREN' : 'BLOCKIEREN';
-  document.getElementById('block-btn-txt').textContent = txt;
-  const profTxt = document.getElementById('prof-block-txt');
-  if (profTxt) profTxt.textContent = txt;
-  const banner  = document.getElementById('blocked-banner');
-  const wrap    = document.getElementById('input-wrap');
-  if (banner && wrap) {
-    banner.style.display = blocked ? 'block' : 'none';
-    if (!blocked) wrap.style.display = 'flex';
-  }
+/* CONVERSATIONS */
+async function loadConversations(){
+  const{data:sent}=await db.from('dsn_messages').select('to_id,created_at').eq('from_id',me.id).order('created_at',{ascending:false});
+  const{data:recv}=await db.from('dsn_messages').select('from_id,created_at').eq('to_id',me.id).order('created_at',{ascending:false});
+  const pm=new Map();
+  (sent||[]).forEach(m=>{const c=pm.get(m.to_id);if(!c||new Date(m.created_at)>new Date(c))pm.set(m.to_id,m.created_at);});
+  (recv||[]).forEach(m=>{const c=pm.get(m.from_id);if(!c||new Date(m.created_at)>new Date(c))pm.set(m.from_id,m.created_at);});
+  if(!pm.size){document.getElementById('conv-list').innerHTML='<div class="empty-state">Noch keine Chats</div>';return;}
+  let uq=db.from('dsn_users').select('id,username,real_name,grade').in('id',[...pm.keys()]);if(!me.is_admin&&me.school)uq=uq.eq('school',me.school);
+  const{data:users}=await uq;
+  const um={};(users||[]).forEach(u=>um[u.id]=u);
+  const convs=[...pm.entries()].map(([id,ts])=>({u:um[id],ts})).filter(c=>c.u).sort((a,b)=>new Date(b.ts)-new Date(a.ts));
+  const{data:ur}=await db.from('dsn_messages').select('from_id').eq('to_id',me.id).eq('read',false);
+  const unread={};(ur||[]).forEach(m=>{unread[m.from_id]=(unread[m.from_id]||0)+1;});
+  document.getElementById('conv-list').innerHTML=convs.map(c=>{
+    const act=currentPartner?.id===c.u.id?'active':'';
+    const cnt=unread[c.u.id]||0;
+    return`<div class="conv-item ${act}" onclick="openChatWith('${c.u.id}')">
+      <div class="avatar">${c.u.username[0].toUpperCase()}</div>
+      <div class="conv-info"><div class="conv-name">${esc(c.u.username)}</div>
+      <div class="conv-preview" style="color:var(--text-muted);font-size:11px;">🔒 verschlüsselt</div></div>
+      <div class="conv-meta"><span class="conv-time">${fmtTime(c.ts)}</span>
+      ${cnt?`<span class="unread-badge">${cnt}</span>`:''}</div></div>`;}).join('');
 }
+function startConvPoll(){clearInterval(convPollTimer);convPollTimer=setInterval(loadConversations,5000);}
 
-/* ─── CONVERSATIONS ─── */
-async function loadConversations() {
-  const { data: sent } = await db.from('dsn_messages').select('to_id,created_at').eq('from_id', me.id).order('created_at', {ascending:false});
-  const { data: recv } = await db.from('dsn_messages').select('from_id,created_at').eq('to_id', me.id).order('created_at', {ascending:false});
-
-  const partnerMap = new Map(); // id → latest timestamp
-  (sent||[]).forEach(m => {
-    const cur = partnerMap.get(m.to_id);
-    if (!cur || new Date(m.created_at) > new Date(cur)) partnerMap.set(m.to_id, m.created_at);
-  });
-  (recv||[]).forEach(m => {
-    const cur = partnerMap.get(m.from_id);
-    if (!cur || new Date(m.created_at) > new Date(cur)) partnerMap.set(m.from_id, m.created_at);
-  });
-
-  if (!partnerMap.size) {
-    document.getElementById('conv-list').innerHTML = '<div class="empty-state">Noch keine Chats</div>';
-    return;
-  }
-
-  const { data: users } = await db.from('dsn_users').select('id,username,real_name,grade').in('id', [...partnerMap.keys()]);
-  const userMap = {};
-  (users||[]).forEach(u => userMap[u.id] = u);
-
-  const convs = [...partnerMap.entries()]
-    .map(([id, ts]) => ({ user: userMap[id], ts }))
-    .filter(c => c.user)
-    .sort((a,b) => new Date(b.ts) - new Date(a.ts));
-
-  const { data: unreadRows } = await db.from('dsn_messages').select('from_id').eq('to_id', me.id).eq('read', false);
-  const unreadMap = {};
-  (unreadRows||[]).forEach(m => { unreadMap[m.from_id] = (unreadMap[m.from_id]||0) + 1; });
-
-  const list = document.getElementById('conv-list');
-  list.innerHTML = convs.map(c => {
-    const active = currentPartner?.id === c.user.id ? 'active' : '';
-    const cnt    = unreadMap[c.user.id] || 0;
-    const badge  = cnt ? `<span class="unread-badge">${cnt}</span>` : '';
-    const time   = formatTime(c.ts);
-    // Preview: just show lock icon since messages are encrypted
-    const preview = `<span style="color:var(--text-muted);font-size:11px;">🔒 verschlüsselt</span>`;
-    return `<div class="conv-item ${active}" onclick="openChatWith('${c.user.id}')">
-      <div class="avatar">${c.user.username[0].toUpperCase()}</div>
-      <div class="conv-info">
-        <div class="conv-name">${escHtml(c.user.username)}</div>
-        <div class="conv-preview">${preview}</div>
-      </div>
-      <div class="conv-meta">
-        <span class="conv-time">${time}</span>
-        ${badge}
-      </div>
-    </div>`;
-  }).join('');
+/* ALL USERS */
+async function loadAllUsers(){
+  let q=db.from('dsn_users').select('id,username,real_name,grade').neq('id',me.id).order('username');
+  if(!me.is_admin && me.school) q=q.eq('school',me.school);
+  const{data}=await q;
+  allUsersCache=data||[];renderUserList('');
 }
-
-function startConvPoll() {
-  clearInterval(convPollTimer);
-  convPollTimer = setInterval(loadConversations, 5000);
+function renderUserList(q){
+  const res=document.getElementById('users-list');
+  const f=q?allUsersCache.filter(u=>u.username.toLowerCase().includes(q)||u.real_name.toLowerCase().includes(q)):allUsersCache;
+  if(!f.length){res.innerHTML='<div class="empty-state">Kein User gefunden</div>';return;}
+  res.innerHTML=f.map(u=>`<div class="conv-item" onclick="openChatWith('${u.id}')">
+    <div class="avatar">${u.username[0].toUpperCase()}</div>
+    <div class="conv-info"><div class="conv-name">${esc(u.username)}${iBlocked(u.id)?' <span class="blocked-tag">BLOCKIERT</span>':''}</div>
+    <div class="conv-preview">${esc(u.real_name)} · Klasse ${u.grade}</div></div></div>`).join('');
 }
+function doSearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>renderUserList(document.getElementById('search-input').value.trim().toLowerCase()),200);}
 
-/* ─── OPEN CHAT ─── */
-async function openChatWith(userId) {
-  const { data: u } = await db.from('dsn_users').select('*').eq('id', userId).single();
-  if (!u) return;
-
-  // If switching to a new partner, clear rendered messages
-  if (chatOpenPartner !== userId) {
-    renderedMsgIds.clear();
-    chatOpenPartner = userId;
-    const wrap = document.getElementById('messages-wrap');
-    wrap.innerHTML = '';
-    wrap.dataset.lastDate = '';
-  }
-
-  currentPartner = u;
-
-  // Derive shared key for this conversation
-  if (u.public_key && myPrivateKey) {
-    try {
-      const theirPub = await importPublicKeyB64(u.public_key);
-      currentSharedKey = await deriveSharedAES(myPrivateKey, theirPub);
-    } catch(e) {
-      currentSharedKey = null;
-      console.warn('Could not derive shared key:', e);
-    }
-  } else {
-    currentSharedKey = null;
-  }
-
+/* OPEN CHAT */
+async function openChatWith(uid){
+  const{data:u}=await db.from('dsn_users').select('*').eq('id',uid).single();
+  if(!u)return;
+  if(currentPartner?.id!==uid){clearMsgs();lastMsgTs=null;}
+  currentPartner=u;
+  currentSharedKey=null;
+  if(u.public_key&&myPrivateKey){try{currentSharedKey=await deriveShared(myPrivateKey,await importPubB64(u.public_key));}catch(e){console.warn(e);}}
   switchTab('chats');
-
-  document.getElementById('chat-empty').style.display = 'none';
-  const cv = document.getElementById('chat-view');
-  cv.style.display = 'flex';
-  document.getElementById('chat-avatar').textContent    = u.username[0].toUpperCase();
-  document.getElementById('chat-name').textContent      = u.username.toUpperCase();
-  document.getElementById('chat-meta').innerHTML        =
-    `${escHtml(u.real_name)} · Klasse ${u.grade} &nbsp;
-     <span style="color:var(--success);font-size:10px;letter-spacing:1px;">🔒 ENDE-ZU-ENDE VERSCHLÜSSELT</span>`;
-
-  // profile panel stays in its current open/closed state
-  document.getElementById('prof-avatar').textContent    = u.username[0].toUpperCase();
-  document.getElementById('prof-username').textContent  = u.username.toUpperCase();
-  document.getElementById('prof-realname').textContent  = u.real_name;
-  document.getElementById('prof-grade').textContent     = `Klasse ${u.grade}`;
-  document.getElementById('prof-since').textContent     = new Date(u.created_at).toLocaleDateString('de-DE');
-
+  document.getElementById('chat-empty').style.display='none';
+  const cv=document.getElementById('chat-view');cv.style.display='flex';
+  document.getElementById('chat-avatar').textContent=u.username[0].toUpperCase();
+  document.getElementById('chat-name').textContent=u.username.toUpperCase();
+  document.getElementById('chat-meta').textContent=`${u.real_name} · Klasse ${u.grade}`;
+  document.getElementById('prof-avatar').textContent=u.username[0].toUpperCase();
+  document.getElementById('prof-username').textContent=u.username.toUpperCase();
+  document.getElementById('prof-realname').textContent=u.real_name;
+  document.getElementById('prof-grade').textContent=`Klasse ${u.grade}`;
+  document.getElementById('prof-since').textContent=new Date(u.created_at).toLocaleDateString('de-DE');
   updateBlockUI();
-
-  const theyBlockedMe = await isBlockedByPartner(u.id);
-  document.getElementById('youre-blocked-banner').style.display = theyBlockedMe ? 'block' : 'none';
-  const inputWrap = document.getElementById('input-wrap');
-  if (theyBlockedMe || iBlocked(u.id)) {
-    inputWrap.style.display = 'none';
-  } else {
-    inputWrap.style.display = 'flex';
-  }
-
-  await db.from('dsn_messages').update({ read: true }).eq('from_id', u.id).eq('to_id', me.id);
-  await loadMessages(true);
+  const tbm=await isBlockedBy(u.id);
+  document.getElementById('youre-blocked-banner').style.display=tbm?'block':'none';
+  document.getElementById('input-wrap').style.display=(tbm||iBlocked(u.id))?'none':'flex';
+  await db.from('dsn_messages').update({read:true}).eq('from_id',u.id).eq('to_id',me.id);
+  await loadFullHistory();
   startPoll();
   loadConversations();
 }
 
-/* ─── MESSAGES ─── */
-async function loadMessages(initialLoad = false) {
-  if (!currentPartner) return;
-  const { data } = await db.from('dsn_messages')
-    .select('*')
+/* MESSAGES */
+function clearMsgs(){
+  const w=document.getElementById('messages-wrap');
+  w.innerHTML='';w.dataset.lastDate='';
+}
+
+async function loadFullHistory(){
+  if(!currentPartner)return;
+  const{data}=await db.from('dsn_messages').select('*')
     .or(`and(from_id.eq.${me.id},to_id.eq.${currentPartner.id}),and(from_id.eq.${currentPartner.id},to_id.eq.${me.id})`)
-    .order('created_at', { ascending: true });
-
-  // Decrypt all messages
-  const decrypted = [];
-  for (const m of (data||[])) {
-    let content = m.content;
-    if (currentSharedKey) {
-      content = await decryptMsg(m.content, currentSharedKey);
-    }
-    decrypted.push({ ...m, content });
+    .order('created_at',{ascending:true});
+  const msgs=data||[];
+  clearMsgs();
+  if(!msgs.length){
+    document.getElementById('messages-wrap').innerHTML='<div class="empty-state" style="margin-top:40px;">Noch keine Nachrichten — schreib was!</div>';
+    lastMsgTs=null;return;
   }
-  allMessages = decrypted;
-  renderMessages(initialLoad);
+  for(const m of msgs){
+    const txt=currentSharedKey?await decryptMsg(m.content,currentSharedKey):m.content;
+    appendMsg(m,txt,false);
+  }
+  lastMsgTs=msgs[msgs.length-1].created_at;
+  scrollBottom();
 }
 
-/* ─── RENDER — append-only, no jitter ─── */
-function renderMessages(initialLoad = false) {
-  const wrap = document.getElementById('messages-wrap');
-
-  if (!allMessages.length) {
-    if (!renderedMsgIds.size) {
-      wrap.innerHTML = '<div class="empty-state" style="margin-top:40px;">Noch keine Nachrichten — schreib was!</div>';
-    }
-    return;
+async function pollNewMsgs(){
+  if(!currentPartner)return;
+  // Only fetch messages strictly newer than our last known timestamp
+  const since=lastMsgTs||new Date(0).toISOString();
+  const{data}=await db.from('dsn_messages').select('*')
+    .or(`and(from_id.eq.${me.id},to_id.eq.${currentPartner.id}),and(from_id.eq.${currentPartner.id},to_id.eq.${me.id})`)
+    .gt('created_at',since)
+    .order('created_at',{ascending:true});
+  const msgs=data||[];
+  if(!msgs.length)return;
+  const w=document.getElementById('messages-wrap');
+  const atBottom=w.scrollHeight-w.scrollTop-w.clientHeight<100;
+  const ph=w.querySelector('.empty-state');if(ph)ph.remove();
+  for(const m of msgs){
+    const txt=currentSharedKey?await decryptMsg(m.content,currentSharedKey):m.content;
+    appendMsg(m,txt,true); // animate only new
   }
-
-  // Remove empty-state placeholder if present
-  const placeholder = wrap.querySelector('.empty-state');
-  if (placeholder) placeholder.remove();
-
-  const wasAtBottom = wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight < 80;
-  let lastDate = wrap.dataset.lastDate || '';
-  let addedAny = false;
-
-  allMessages.forEach(m => {
-    if (renderedMsgIds.has(m.id)) return; // already rendered — skip
-    renderedMsgIds.add(m.id);
-    addedAny = true;
-
-    const d       = new Date(m.created_at);
-    const dateStr = d.toLocaleDateString('de-DE', { weekday:'long', day:'numeric', month:'long' });
-
-    if (dateStr !== lastDate) {
-      const label = document.createElement('div');
-      label.className = 'msg-group-label';
-      label.textContent = dateStr;
-      wrap.appendChild(label);
-      lastDate = dateStr;
-      wrap.dataset.lastDate = lastDate;
-    }
-
-    const isOut  = m.from_id === me.id;
-    const time   = d.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' });
-    const el     = document.createElement('div');
-    // Only animate if it's a new incoming message (not the initial batch load)
-    el.className = `msg ${isOut ? 'out' : 'in'}${!initialLoad ? ' msg-anim' : ''}`;
-    el.innerHTML = `<div class="msg-bubble">${escHtml(m.content).replace(/\n/g,'<br>')}<span class="msg-time">${time}</span></div>`;
-    wrap.appendChild(el);
-  });
-
-  if (addedAny && (initialLoad || wasAtBottom)) {
-    wrap.scrollTop = wrap.scrollHeight;
-  }
-}
-
-function startPoll() {
-  clearInterval(pollTimer);
-  pollTimer = setInterval(async () => {
-    if (!currentPartner) return;
-    // Only check for NEW messages — compare last known id
-    const lastKnownId = allMessages.length ? allMessages[allMessages.length - 1].id : null;
-    const { data: check } = await db.from('dsn_messages')
-      .select('id')
-      .or(`and(from_id.eq.${me.id},to_id.eq.${currentPartner.id}),and(from_id.eq.${currentPartner.id},to_id.eq.${me.id})`)
-      .order('created_at', { ascending: false })
-      .limit(1);
-    const latestId = check?.[0]?.id;
-    if (latestId && latestId !== lastKnownId) {
-      await loadMessages(false);
-      await db.from('dsn_messages').update({ read: true }).eq('from_id', currentPartner.id).eq('to_id', me.id);
-      loadConversations();
-    }
-  }, 2000);
-}
-
-/* ─── SEND MESSAGE ─── */
-async function sendMessage() {
-  if (!currentPartner) return;
-  const input   = document.getElementById('msg-input');
-  const content = input.value.trim();
-  if (!content) return;
-
-  if (iBlocked(currentPartner.id)) { showNotif('User ist blockiert', 'danger'); return; }
-  const theyBlockedMe = await isBlockedByPartner(currentPartner.id);
-  if (theyBlockedMe) { showNotif('Du wurdest blockiert', 'danger'); return; }
-
-  const btn = document.getElementById('send-btn');
-  btn.disabled = true;
-  input.value = '';
-  input.style.height = 'auto';
-
-  let toStore = content;
-  if (currentSharedKey) {
-    toStore = await encryptMsg(content, currentSharedKey);
-  }
-
-  const { error } = await db.from('dsn_messages').insert({
-    from_id: me.id,
-    to_id:   currentPartner.id,
-    content: toStore,
-    read:    false
-  });
-
-  btn.disabled = false;
-
-  if (error) {
-    showNotif('Fehler beim Senden', 'danger');
-    input.value = content;
-    return;
-  }
-
-  await loadMessages(false);
+  lastMsgTs=msgs[msgs.length-1].created_at;
+  if(atBottom)scrollBottom();
+  await db.from('dsn_messages').update({read:true}).eq('from_id',currentPartner.id).eq('to_id',me.id);
   loadConversations();
 }
 
-function inputKeydown(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-}
-
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-}
-
-/* ─── SEARCH ─── */
-function doSearch() {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(executeSearch, 350);
-}
-
-async function executeSearch() {
-  const q   = document.getElementById('search-input').value.trim().toLowerCase();
-  const res = document.getElementById('search-results');
-
-  if (!q) {
-    allUsersLoaded = false;
-    await loadAllUsers();
-    return;
+function appendMsg(m,text,animate){
+  const w=document.getElementById('messages-wrap');
+  const d=new Date(m.created_at);
+  const ds=d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});
+  if(ds!==(w.dataset.lastDate||'')){
+    const lbl=document.createElement('div');lbl.className='msg-date-label';lbl.textContent=ds;
+    w.appendChild(lbl);w.dataset.lastDate=ds;
   }
-
-  res.innerHTML = '<div class="empty-state"><span class="loading-dots"><span></span><span></span><span></span></span></div>';
-
-  const { data } = await db.from('dsn_users')
-    .select('id,username,real_name,grade')
-    .ilike('username', `%${q}%`)
-    .neq('id', me.id)
-    .limit(20);
-
-  if (!data || !data.length) { res.innerHTML = '<div class="empty-state">Kein User gefunden</div>'; return; }
-  renderUserList(data, res);
+  const out=m.from_id===me.id;
+  const el=document.createElement('div');
+  // Static messages get NO animation class at all — only truly new ones do
+  el.className=`msg ${out?'out':'in'}${animate?' new-msg':''}`;
+  el.innerHTML=`<div class="msg-bubble">${esc(text).replace(/\n/g,'<br>')}<span class="msg-time">${d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</span></div>`;
+  w.appendChild(el);
 }
 
-/* ─── TABS ─── */
-function switchTab(name) {
-  ['chats','search','blocked'].forEach(t => {
-    document.getElementById('tab-'+t).classList.toggle('active', t === name);
-    document.getElementById('panel-'+t).classList.toggle('active', t === name);
+function scrollBottom(){const w=document.getElementById('messages-wrap');w.scrollTop=w.scrollHeight;}
+function startPoll(){clearInterval(pollTimer);pollTimer=setInterval(()=>{if(currentPartner)pollNewMsgs();},2500);}
+
+/* SEND */
+async function sendMessage(){
+  if(!currentPartner)return;
+  const inp=document.getElementById('msg-input');
+  const txt=inp.value.trim();if(!txt)return;
+  if(iBlocked(currentPartner.id)){showNotif('User ist blockiert','danger');return;}
+  if(await isBlockedBy(currentPartner.id)){showNotif('Du wurdest blockiert','danger');return;}
+  const btn=document.getElementById('send-btn');
+  btn.disabled=true;inp.value='';inp.style.height='auto';
+  const toStore=currentSharedKey?await encryptMsg(txt,currentSharedKey):txt;
+  const{error}=await db.from('dsn_messages').insert({from_id:me.id,to_id:currentPartner.id,content:toStore,read:false});
+  btn.disabled=false;
+  if(error){showNotif('Fehler beim Senden','danger');inp.value=txt;return;}
+  await pollNewMsgs();
+}
+function inputKeydown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
+
+/* TABS */
+function switchTab(n){
+  ['chats','users','blocked'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===n);
+    document.getElementById('panel-'+t).classList.toggle('active',t===n);
   });
-  if (name === 'search') loadAllUsers();
 }
 
-let allUsersLoaded = false;
-async function loadAllUsers() {
-  const q = document.getElementById('search-input').value.trim();
-  if (q) return; // if user is typing, let doSearch handle it
-  if (allUsersLoaded) return;
-  const res = document.getElementById('search-results');
-  const { data } = await db.from('dsn_users')
-    .select('id,username,real_name,grade')
-    .neq('id', me.id)
-    .order('username', { ascending: true })
-    .limit(100);
-  if (!data || !data.length) { res.innerHTML = '<div class="empty-state">Keine anderen User</div>'; return; }
-  allUsersLoaded = true;
-  renderUserList(data, res);
-}
-
-function renderUserList(users, container) {
-  container.innerHTML = users.map(u => {
-    const bl = iBlocked(u.id) ? '<span class="blocked-tag">BLOCKIERT</span>' : '';
-    return `<div class="search-result-item" onclick="openChatWith('${u.id}')">
-      <div class="avatar">${u.username[0].toUpperCase()}</div>
-      <div class="conv-info">
-        <div class="conv-name">${escHtml(u.username)} ${bl}</div>
-        <div class="conv-preview">${escHtml(u.real_name)} · Klasse ${u.grade}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-/* ─── MODAL ─── */
-function openModal(title, body, onConfirm) {
-  document.getElementById('modal-title').textContent = title;
-  document.getElementById('modal-body').innerHTML    = body;
+/* MODAL */
+function openModal(title,body,cb){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-body').innerHTML=body;
   document.getElementById('confirm-modal').classList.add('open');
-  document.getElementById('modal-confirm-btn').onclick = onConfirm;
+  document.getElementById('modal-confirm-btn').onclick=cb;
 }
-function closeModal() { document.getElementById('confirm-modal').classList.remove('open'); }
+function closeModal(){document.getElementById('confirm-modal').classList.remove('open');}
 
-/* ─── NOTIFICATION ─── */
-function showNotif(msg, type = '') {
-  const n = document.createElement('div');
-  n.className   = `notif ${type}`;
-  n.textContent = msg;
-  document.body.appendChild(n);
-  setTimeout(() => n.remove(), 3000);
+/* NOTIF */
+function showNotif(msg,type=''){
+  const n=document.createElement('div');n.className=`notif ${type}`;n.textContent=msg;
+  document.body.appendChild(n);setTimeout(()=>n.remove(),3000);
 }
 
-/* ─── HELPERS ─── */
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function formatTime(ts) {
-  const d    = new Date(ts);
-  const now  = new Date();
-  const diff = now - d;
-  if (diff < 60000)    return 'gerade eben';
-  if (diff < 3600000)  return Math.floor(diff/60000) + 'm';
-  if (diff < 86400000) return d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+/* HELPERS */
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtTime(ts){
+  const d=new Date(ts),now=new Date(),diff=now-d;
+  if(diff<60000)return'gerade eben';
+  if(diff<3600000)return Math.floor(diff/60000)+'m';
+  if(diff<86400000)return d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
   return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
 }
 </script>
