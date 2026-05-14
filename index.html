@@ -1,748 +1,897 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>DARK SCHOOL NET — CHAT</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dark School Net — Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ─── RESET ─── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Inter',sans-serif;background:#fff;color:#0f172a;-webkit-font-smoothing:antialiased;overflow:hidden}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,textarea{font-family:inherit}
 
-:root {
-  --bg-base:        #0a0a0a;
-  --bg-surface:     #111111;
-  --bg-card:        #161616;
-  --bg-input:       #0e0e0e;
-  --border-subtle:  #222222;
-  --border-mid:     #333333;
-  --border-active:  #555555;
-  --text-primary:   #c8c8c8;
-  --text-secondary: #666666;
-  --text-muted:     #3a3a3a;
-  --text-white:     #e8e8e8;
-  --accent:         #5b8cff;
-  --accent-glow:    rgba(91,140,255,0.15);
-  --danger:         #ff4444;
-  --danger-glow:    rgba(255,68,68,0.12);
-  --success:        #44cc88;
-  --warning:        #ffaa33;
+/* ─── VARIABLES ─── */
+:root{
+  --bg:#ffffff; --surface:#f8fafc; --surface-2:#f1f5f9;
+  --border:#e2e8f0; --border-strong:#cbd5e1;
+  --text:#0f172a; --text-2:#475569; --text-3:#94a3b8;
+  --blue:#2563eb; --blue-dk:#1d4ed8; --blue-lt:#eff6ff; --blue-bd:#bfdbfe;
+  --danger:#ef4444; --danger-lt:#fef2f2;
+  --success:#22c55e;
+  --sh-xs:0 1px 2px rgba(0,0,0,.05);
+  --sh-sm:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
+  --sh-md:0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.06);
+  --sh-lg:0 10px 15px rgba(0,0,0,.1),0 4px 6px rgba(0,0,0,.05);
+  --sh-xl:0 20px 25px rgba(0,0,0,.1),0 10px 10px rgba(0,0,0,.04);
+  --r-sm:8px; --r:12px; --r-lg:20px; --r-xl:28px; --r-full:9999px
 }
 
-html, body { height:100%; background:var(--bg-base); color:var(--text-primary); font-family:'Barlow',sans-serif; overflow:hidden; }
+/* ─── LANDING ─── */
+#landing{position:fixed;inset:0;z-index:50;overflow-y:auto;background:#fff;transition:opacity .4s ease,transform .4s ease}
+#landing.fade-out{opacity:0;pointer-events:none;transform:translateY(-12px)}
 
-body::before {
-  content:''; position:fixed; inset:0; z-index:9999; pointer-events:none;
-  background:repeating-linear-gradient(0deg,rgba(0,0,0,0.07) 0px,rgba(0,0,0,0.07) 1px,transparent 1px,transparent 3px);
-  opacity:0.4;
-}
-body::after {
-  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
-  background-image:linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);
-  background-size:40px 40px;
-}
+/* NAV */
+.nav{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:0 52px;height:64px;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.nav-logo{font-size:15px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:9px}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--blue)}
+.nav-cta{background:var(--blue);color:#fff;padding:9px 22px;border-radius:var(--r-full);font-size:14px;font-weight:600;letter-spacing:-.2px;transition:background .15s,transform .1s,box-shadow .15s;box-shadow:0 2px 8px rgba(37,99,235,.25)}
+.nav-cta:hover{background:var(--blue-dk);transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,.35)}
+.nav-cta:active{transform:translateY(0)}
 
-/* LOGIN */
-#login-screen { position:fixed; inset:0; z-index:100; display:flex; align-items:stretch; background:var(--bg-base); min-height:100vh; }
+/* HERO */
+.hero{min-height:calc(100vh - 64px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 40px;position:relative;overflow:hidden;background:var(--surface)}
+.hero::before{content:'';position:absolute;top:-200px;right:-150px;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.07) 0%,transparent 68%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-120px;left:-80px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.05) 0%,transparent 68%);pointer-events:none}
 
-.login-hero {
-  flex:1; min-width:320px; display:flex; flex-direction:column; justify-content:center; padding:56px 64px;
-  border-right:1px solid var(--border-subtle); position:relative; overflow:hidden;
-}
-.login-hero::before {
-  content:''; position:absolute; top:-120px; left:-120px; width:500px; height:500px; border-radius:50%;
-  background:radial-gradient(circle, rgba(91,140,255,0.08) 0%, transparent 70%); pointer-events:none;
-}
-.hero-eyebrow { font-family:'Barlow Condensed',sans-serif; font-size:11px; letter-spacing:4px; text-transform:uppercase; color:var(--accent); margin-bottom:20px; display:flex; align-items:center; gap:10px; }
-.hero-eyebrow::before { content:''; display:block; width:24px; height:1px; background:var(--accent); }
-.hero-headline { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:clamp(40px,4.5vw,68px); line-height:0.95; letter-spacing:1px; text-transform:uppercase; color:var(--text-white); margin-bottom:24px; }
-.hero-headline em { color:var(--accent); font-style:normal; display:block; }
-.hero-sub { font-family:'Barlow',sans-serif; font-size:15px; color:var(--text-secondary); line-height:1.7; max-width:400px; margin-bottom:28px; }
-.hero-sub strong { color:var(--text-primary); }
-.hero-features { display:flex; flex-direction:column; gap:10px; margin-bottom:32px; }
-.hero-feature { display:flex; align-items:center; gap:12px; font-family:'Barlow Condensed',sans-serif; font-size:13px; letter-spacing:1px; color:var(--text-secondary); }
-.hero-feature::before { content:''; width:6px; height:6px; background:var(--accent); flex-shrink:0; }
-.hero-register-hint { display:flex; align-items:flex-start; gap:12px; font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:1px; color:var(--text-muted); border-top:1px solid var(--border-subtle); padding-top:24px; line-height:1.6; }
-.hero-register-hint strong { color:var(--accent); font-weight:600; }
-.hero-register-hint::before { content:'!'; display:flex; align-items:center; justify-content:center; width:20px; height:20px; min-width:20px; border:1px solid var(--accent); color:var(--accent); font-family:Impact,sans-serif; font-size:13px; margin-top:1px; }
+.hero-badge{display:inline-flex;align-items:center;gap:7px;background:var(--blue-lt);border:1px solid var(--blue-bd);color:var(--blue);border-radius:var(--r-full);font-size:12px;font-weight:600;padding:5px 14px;margin-bottom:28px;animation:fadeUp .5s ease both}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--blue)}
+.hero-h1{font-size:clamp(46px,6vw,80px);font-weight:900;letter-spacing:-2.5px;line-height:1.02;text-align:center;max-width:680px;animation:fadeUp .5s .08s ease both}
+.hero-h1 em{color:var(--blue);font-style:normal}
+.hero-sub{font-size:18px;color:var(--text-2);line-height:1.7;text-align:center;max-width:420px;margin-top:20px;font-weight:400;animation:fadeUp .5s .16s ease both}
+.hero-actions{display:flex;gap:12px;margin-top:40px;animation:fadeUp .5s .24s ease both}
 
-.login-side { width:400px; flex-shrink:0; display:flex; align-items:center; justify-content:center; padding:48px; background:var(--bg-surface); border-left:1px solid var(--border-subtle); }
-.login-box { width:100%; position:relative; animation:cardIn 0.4s ease; }
-.login-box .login-logo { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:11px; letter-spacing:4px; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px; }
-.login-box .login-title { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:32px; letter-spacing:2px; color:var(--text-white); text-transform:uppercase; margin-bottom:28px; line-height:1; }
-.login-box .login-title span { color:var(--accent); }
-.login-box::before { display:none; }
-.login-box::after  { display:none; }
-.login-logo  { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:11px; letter-spacing:4px; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px; }
-.login-title { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:32px; letter-spacing:2px; color:var(--text-white); text-transform:uppercase; margin-bottom:28px; line-height:1; }
-.login-title span { color:var(--accent); }
-.field { margin-bottom:16px; }
-.field-label { font-family:'Barlow Condensed',sans-serif; font-size:11px; letter-spacing:2px; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px; }
-input[type=text],input[type=password] { width:100%; background:var(--bg-input); border:1px solid var(--border-subtle); color:var(--text-white); font-family:'Barlow Condensed',sans-serif; font-size:15px; padding:10px 12px; outline:none; transition:border-color 0.2s; }
-input:focus { border-color:var(--accent); }
-input::placeholder { color:var(--text-muted); }
-.error-msg { font-family:'Barlow Condensed',sans-serif; font-size:13px; color:var(--danger); margin-top:10px; min-height:18px; }
+.btn-primary{background:var(--blue);color:#fff;padding:14px 32px;border-radius:var(--r-full);font-size:15px;font-weight:600;letter-spacing:-.2px;transition:background .15s,transform .1s,box-shadow .15s;box-shadow:0 2px 10px rgba(37,99,235,.3)}
+.btn-primary:hover{background:var(--blue-dk);transform:translateY(-2px);box-shadow:0 6px 20px rgba(37,99,235,.4)}
+.btn-primary:active{transform:translateY(0)}
+.btn-ghost{background:#fff;color:var(--text-2);padding:14px 28px;border-radius:var(--r-full);font-size:15px;font-weight:600;letter-spacing:-.2px;border:1.5px solid var(--border-strong);transition:border-color .15s,color .15s,transform .1s,box-shadow .15s}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue);transform:translateY(-2px);box-shadow:var(--sh-sm)}
 
-/* BUTTONS */
-.btn { width:100%; background:transparent; border:1px solid var(--accent); color:var(--accent); font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:14px; letter-spacing:3px; text-transform:uppercase; padding:12px; cursor:pointer; position:relative; overflow:hidden; transition:color 0.2s; margin-top:8px; }
-.btn::before { content:''; position:absolute; inset:0; background:var(--accent); transform:scaleX(0); transform-origin:left; transition:transform 0.25s ease; }
-.btn:hover::before { transform:scaleX(1); }
-.btn:hover { color:#000; }
-.btn span { position:relative; z-index:1; }
-.btn-danger { border-color:var(--danger); color:var(--danger); }
-.btn-danger::before { background:var(--danger); }
-.btn-danger:hover { color:#fff; }
-.btn-ghost { border-color:var(--border-subtle); color:var(--text-secondary); }
-.btn-ghost::before { background:var(--border-mid); }
-.btn-ghost:hover { color:var(--text-white); }
-.btn-sm { width:auto; padding:6px 14px; font-size:11px; letter-spacing:2px; margin-top:0; }
+/* FEATURES */
+.features{padding:96px 52px;max-width:1100px;margin:0 auto}
+.feat-eyebrow{text-align:center;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin-bottom:10px}
+.feat-h2{text-align:center;font-size:clamp(28px,3.5vw,42px);font-weight:800;letter-spacing:-1.2px;margin-bottom:56px}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.feat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:28px;transition:border-color .2s,box-shadow .2s,transform .2s}
+.feat-card:hover{border-color:var(--blue-bd);box-shadow:var(--sh-md);transform:translateY(-3px)}
+.feat-icon{width:44px;height:44px;border-radius:var(--r-sm);background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:16px}
+.feat-h3{font-size:16px;font-weight:700;margin-bottom:8px;letter-spacing:-.3px}
+.feat-p{font-size:14px;color:var(--text-2);line-height:1.65}
 
-/* APP LAYOUT */
-#app { display:none; position:fixed; inset:0; z-index:10; flex-direction:row; }
-#app.visible { display:flex; }
+/* REGISTER BAND */
+.reg-band{background:var(--text);padding:80px 52px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.reg-band h2{font-size:clamp(24px,3vw,36px);font-weight:800;color:#fff;letter-spacing:-1px;text-align:center}
+.reg-band p{font-size:16px;color:#94a3b8;text-align:center;max-width:400px;line-height:1.6}
+.reg-band .btn-primary{background:#fff;color:var(--text);box-shadow:none}
+.reg-band .btn-primary:hover{background:var(--surface);box-shadow:none}
 
-/* SIDEBAR */
-.sidebar { width:300px; min-width:300px; background:var(--bg-surface); border-right:1px solid var(--border-subtle); display:flex; flex-direction:column; height:100%; flex-shrink:0; }
-.sidebar-header { padding:16px 16px 12px; border-bottom:1px solid var(--border-subtle); flex-shrink:0; }
-.sidebar-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-.app-name { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:18px; letter-spacing:3px; color:var(--text-white); text-transform:uppercase; }
-.app-name span { color:var(--accent); }
-.user-badge { font-family:'Barlow Condensed',sans-serif; font-size:12px; color:var(--text-secondary); letter-spacing:1px; }
-.user-badge strong { color:var(--accent); }
-.logout-btn { background:none; border:1px solid var(--border-subtle); color:var(--text-muted); font-family:'Barlow Condensed',sans-serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; padding:4px 8px; cursor:pointer; transition:border-color 0.2s,color 0.2s; }
-.logout-btn:hover { border-color:var(--danger); color:var(--danger); }
+/* FOOTER */
+.footer{padding:28px 52px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border)}
+.footer p{font-size:12px;color:var(--text-3)}
 
-.search-wrap { position:relative; }
-.search-wrap input { width:100%; background:var(--bg-input); border:1px solid var(--border-subtle); color:var(--text-white); font-family:'Barlow Condensed',sans-serif; font-size:13px; padding:8px 12px 8px 32px; outline:none; transition:border-color 0.2s; }
-.search-wrap input:focus { border-color:var(--accent); }
-.search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:13px; pointer-events:none; }
+/* ─── MODAL BASE ─── */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(15,23,42,.45);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
 
-.tabs { display:flex; border-bottom:1px solid var(--border-subtle); flex-shrink:0; }
-.tab { flex:1; padding:10px; text-align:center; font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--text-secondary); cursor:pointer; position:relative; transition:color 0.2s; }
-.tab::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--accent); transform:scaleX(0); transition:transform 0.2s; }
-.tab.active { color:var(--accent); }
-.tab.active::after { transform:scaleX(1); }
-.tab-panel { display:none; }
-.tab-panel.active { display:flex; flex-direction:column; flex:1; overflow:hidden; }
+/* LOGIN MODAL */
+.login-card{background:#fff;border-radius:var(--r-xl);padding:40px;width:400px;box-shadow:var(--sh-xl);position:relative;transform:translateY(14px) scale(.97);transition:transform .28s cubic-bezier(.16,1,.3,1)}
+.modal-overlay.open .login-card{transform:translateY(0) scale(1)}
+.login-logo-row{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.login-logo-icon{width:34px;height:34px;background:var(--blue);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center}
+.login-logo-icon svg{width:18px;height:18px;fill:#fff}
+.login-logo-text{font-size:14px;font-weight:700;color:var(--text-2)}
+.login-h2{font-size:24px;font-weight:800;letter-spacing:-.6px;margin-bottom:5px}
+.login-sub{font-size:14px;color:var(--text-3);margin-bottom:28px}
+.modal-x{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:16px;transition:background .15s,color .15s}
+.modal-x:hover{background:var(--surface);color:var(--text)}
 
-.conv-list { flex:1; overflow-y:auto; }
-.conv-list::-webkit-scrollbar { width:4px; }
-.conv-list::-webkit-scrollbar-thumb { background:var(--border-mid); }
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-3);margin-bottom:6px}
+.field input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:15px;color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s}
+.field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.field input::placeholder{color:var(--text-3)}
+.submit-btn{width:100%;padding:13px;background:var(--blue);color:#fff;border-radius:var(--r-sm);font-size:15px;font-weight:600;transition:background .15s,box-shadow .15s;box-shadow:0 2px 6px rgba(37,99,235,.25);margin-top:4px}
+.submit-btn:hover:not(:disabled){background:var(--blue-dk);box-shadow:0 4px 14px rgba(37,99,235,.35)}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed}
+.field-error{font-size:13px;color:var(--danger);font-weight:500;margin-top:10px;min-height:18px}
 
-.avatar { width:40px; height:40px; background:var(--bg-input); border:1px solid var(--border-mid); display:flex; align-items:center; justify-content:center; font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:16px; color:var(--accent); flex-shrink:0; text-transform:uppercase; }
-.conv-item { display:flex; align-items:center; gap:10px; padding:12px 16px; cursor:pointer; border-bottom:1px solid var(--border-subtle); transition:background 0.15s; position:relative; }
-.conv-item:hover { background:var(--bg-card); }
-.conv-item.active { background:var(--bg-card); }
-.conv-item.active::before { content:''; position:absolute; left:0; top:0; bottom:0; width:2px; background:var(--accent); }
-.conv-info { flex:1; overflow:hidden; }
-.conv-name { font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:600; color:var(--text-white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.conv-preview { font-size:12px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
-.conv-meta { display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
-.conv-time { font-family:'Barlow Condensed',sans-serif; font-size:10px; color:var(--text-muted); }
-.unread-badge { background:var(--accent); color:#000; font-family:Impact,sans-serif; font-size:10px; min-width:18px; height:18px; display:flex; align-items:center; justify-content:center; padding:0 4px; }
-.empty-state { padding:32px 16px; text-align:center; font-family:'Barlow Condensed',sans-serif; font-size:13px; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase; }
-.blocked-tag { display:inline-block; background:var(--danger-glow); border:1px solid rgba(255,68,68,0.3); color:var(--danger); font-family:'Barlow Condensed',sans-serif; font-size:10px; letter-spacing:1px; padding:1px 6px; text-transform:uppercase; }
+/* CONFIRM MODAL */
+.confirm-card{background:#fff;border-radius:var(--r-xl);padding:32px;width:360px;box-shadow:var(--sh-xl);transform:translateY(14px) scale(.97);transition:transform .28s cubic-bezier(.16,1,.3,1)}
+.modal-overlay.open .confirm-card{transform:translateY(0) scale(1)}
+.confirm-h3{font-size:18px;font-weight:700;letter-spacing:-.3px;margin-bottom:8px}
+.confirm-p{font-size:14px;color:var(--text-2);line-height:1.6;margin-bottom:24px}
+.confirm-row{display:flex;gap:10px}
+.btn-ok{flex:1;padding:11px;background:var(--danger);color:#fff;border-radius:var(--r-sm);font-size:14px;font-weight:600;transition:opacity .15s}
+.btn-ok:hover{opacity:.88}
+.btn-cancel{flex:1;padding:11px;background:var(--surface);border:1.5px solid var(--border);color:var(--text-2);border-radius:var(--r-sm);font-size:14px;font-weight:600;transition:background .15s}
+.btn-cancel:hover{background:var(--surface-2)}
 
-/* CHAT AREA */
-.chat-area { flex:1; display:flex; flex-direction:column; height:100%; background:var(--bg-base); min-width:0; }
-.chat-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-muted); }
-.chat-empty-icon { font-size:48px; margin-bottom:16px; opacity:0.3; }
-.chat-empty h2 { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:20px; letter-spacing:4px; text-transform:uppercase; margin-bottom:8px; }
-.chat-empty p { font-family:'Barlow Condensed',sans-serif; font-size:13px; letter-spacing:1px; }
+/* ─── APP ─── */
+#app{position:fixed;inset:0;z-index:100;display:flex;opacity:0;pointer-events:none;transition:opacity .35s ease}
+#app.visible{opacity:1;pointer-events:all}
 
-.chat-header { padding:12px 20px; border-bottom:1px solid var(--border-subtle); background:var(--bg-surface); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
-.chat-header-left { display:flex; align-items:center; gap:12px; }
-.chat-partner-name { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:18px; letter-spacing:2px; color:var(--text-white); text-transform:uppercase; }
-.chat-partner-meta { font-family:'Barlow Condensed',sans-serif; font-size:12px; color:var(--text-secondary); margin-top:1px; }
-.chat-header-actions { display:flex; gap:8px; align-items:center; }
+/* ─── SIDEBAR ─── */
+.sidebar{width:296px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100%}
+.sb-header{padding:14px 14px 12px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px}
+.me-av{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff}
+.me-info{flex:1;min-width:0}
+.me-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.me-label{font-size:11px;color:var(--text-3);margin-top:1px}
+.icon-btn{width:32px;height:32px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;color:var(--text-3);transition:background .15s,color .15s;flex-shrink:0}
+.icon-btn:hover{background:var(--surface-2);color:var(--text)}
+.icon-btn.danger:hover{background:var(--danger-lt);color:var(--danger)}
+.icon-btn.active{background:var(--blue-lt);color:var(--blue)}
+.icon-btn svg{width:15px;height:15px}
 
-.e2e-banner {
-  display:flex; align-items:center; justify-content:center; gap:6px;
-  padding:5px 0; font-family:'Barlow Condensed',sans-serif; font-size:11px;
-  letter-spacing:1.5px; text-transform:uppercase; color:var(--success);
-  background:rgba(68,204,136,0.04); border-bottom:1px solid rgba(68,204,136,0.1);
-  flex-shrink:0; opacity:0.8;
-}
+/* TABS */
+.sb-tabs{display:flex;padding:8px 10px 0;gap:3px;flex-shrink:0}
+.sb-tab{flex:1;padding:7px 6px;font-size:12px;font-weight:600;color:var(--text-3);border-radius:var(--r-sm);text-align:center;transition:background .15s,color .15s}
+.sb-tab:hover{background:var(--surface-2);color:var(--text-2)}
+.sb-tab.active{background:var(--blue-lt);color:var(--blue)}
 
-.messages-wrap { flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; }
-.messages-wrap::-webkit-scrollbar { width:4px; }
-.messages-wrap::-webkit-scrollbar-thumb { background:var(--border-mid); }
+/* SEARCH */
+.sb-search{padding:8px 10px;flex-shrink:0}
+.search-row{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:7px 12px;transition:border-color .15s,box-shadow .15s}
+.search-row:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.09)}
+.search-row svg{width:14px;height:14px;color:var(--text-3);flex-shrink:0}
+.search-row input{flex:1;font-size:13px;color:var(--text);outline:none;border:none;background:transparent}
+.search-row input::placeholder{color:var(--text-3)}
 
-.msg-date-label { text-align:center; font-family:'Barlow Condensed',sans-serif; font-size:11px; color:var(--text-muted); letter-spacing:2px; text-transform:uppercase; margin:12px 0 8px; flex-shrink:0; }
+/* LIST */
+.tab-panel{display:none;flex-direction:column;flex:1;overflow:hidden}
+.tab-panel.active{display:flex}
+.list-scroll{flex:1;overflow-y:auto;padding:4px 6px}
+.list-scroll::-webkit-scrollbar{width:3px}
+.list-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.section-label{font-size:11px;font-weight:600;color:var(--text-3);letter-spacing:.5px;text-transform:uppercase;padding:10px 8px 5px}
 
-/* Messages — NO default animation. Only .new-msg gets animated */
-.msg { display:flex; margin-bottom:3px; flex-shrink:0; }
-.msg.out { flex-direction:row-reverse; }
-.msg.new-msg { animation:msgIn 0.18s ease both; }
+.conv-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r);cursor:pointer;transition:background .12s;position:relative}
+.conv-item:hover{background:var(--surface-2)}
+.conv-item.active{background:#fff;box-shadow:var(--sh-sm)}
+.conv-item.active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--blue);border-radius:0 3px 3px 0}
+.av{width:42px;height:42px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff}
+.av-sm{width:36px;height:36px;font-size:13px}
+.av-lg{width:64px;height:64px;font-size:24px}
+.ci-info{flex:1;min-width:0}
+.ci-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ci-sub{font-size:12px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.ci-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.ci-time{font-size:11px;color:var(--text-3)}
+.unread-badge{background:var(--blue);color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:var(--r-full);display:flex;align-items:center;justify-content:center;padding:0 5px}
 
-.msg-bubble { max-width:65%; padding:8px 12px; font-size:14px; line-height:1.5; position:relative; word-break:break-word; }
-.msg.in  .msg-bubble { background:var(--bg-card); border:1px solid var(--border-subtle); color:var(--text-primary); border-left:2px solid var(--border-mid); }
-.msg.out .msg-bubble { background:rgba(91,140,255,0.12); border:1px solid rgba(91,140,255,0.3); color:var(--text-white); border-right:2px solid var(--accent); }
-.msg-time { font-family:'Barlow Condensed',sans-serif; font-size:10px; color:var(--text-muted); margin-top:3px; display:block; }
-.msg.out .msg-time { text-align:right; }
+.empty-list{padding:40px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;color:var(--text-3)}
+.empty-list svg{width:32px;height:32px;opacity:.4}
+.empty-list p{font-size:13px;font-weight:500;text-align:center}
 
-.chat-input-wrap { padding:12px 16px; border-top:1px solid var(--border-subtle); background:var(--bg-surface); display:flex; gap:10px; align-items:flex-end; flex-shrink:0; }
-.chat-input-box { flex:1; background:var(--bg-input); border:1px solid var(--border-subtle); color:var(--text-white); font-family:'Barlow',sans-serif; font-size:14px; padding:10px 14px; outline:none; resize:none; min-height:42px; max-height:120px; transition:border-color 0.2s; line-height:1.4; }
-.chat-input-box:focus { border-color:var(--accent); }
-.chat-input-box::placeholder { color:var(--text-muted); }
-.send-btn { background:var(--accent); border:none; color:#000; font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; padding:10px 18px; cursor:pointer; transition:opacity 0.2s,transform 0.1s; flex-shrink:0; height:42px; }
-.send-btn:hover { opacity:0.85; }
-.send-btn:active { transform:scale(0.97); }
-.send-btn:disabled { opacity:0.3; cursor:not-allowed; }
+/* ─── CHAT MAIN ─── */
+.chat-main{flex:1;min-width:0;display:flex;flex-direction:column;background:#fff}
 
-.blocked-banner { padding:12px 20px; background:var(--danger-glow); border-top:1px solid rgba(255,68,68,0.2); text-align:center; font-family:'Barlow Condensed',sans-serif; font-size:13px; color:var(--danger); letter-spacing:1px; text-transform:uppercase; }
+.chat-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text-3)}
+.chat-empty svg{width:44px;height:44px;opacity:.3}
+.chat-empty h3{font-size:16px;font-weight:600;color:var(--text-2)}
+.chat-empty p{font-size:13px}
 
-/* RIGHT PANEL — collapsed by default, smooth open */
-.profile-panel {
-  width:0; min-width:0; overflow:hidden; background:var(--bg-surface);
-  border-left:0 solid var(--border-subtle); display:flex; flex-direction:column;
-  transition:width 0.25s ease, min-width 0.25s ease, border-left-width 0.25s;
-  flex-shrink:0;
-}
-.profile-panel.open { width:240px; min-width:240px; border-left-width:1px; }
-.profile-panel-inner { padding:20px; display:flex; flex-direction:column; gap:12px; width:240px; overflow-y:auto; }
-.profile-panel-inner::-webkit-scrollbar { width:4px; }
-.profile-panel-inner::-webkit-scrollbar-thumb { background:var(--border-mid); }
-.profile-avatar-lg { width:60px; height:60px; background:var(--bg-input); border:2px solid var(--border-mid); display:flex; align-items:center; justify-content:center; font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:24px; color:var(--accent); text-transform:uppercase; margin:0 auto; position:relative; }
-.profile-avatar-lg::before { content:''; position:absolute; top:-2px; left:-2px; width:12px; height:12px; border-top:2px solid var(--accent); border-left:2px solid var(--accent); }
-.profile-username { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:16px; letter-spacing:2px; color:var(--text-white); text-transform:uppercase; text-align:center; }
-.profile-row { padding:8px 10px; background:var(--bg-card); border:1px solid var(--border-subtle); position:relative; }
-.profile-row::before { content:''; position:absolute; left:0; top:0; bottom:0; width:2px; background:var(--border-mid); }
-.profile-row-label { font-family:'Barlow Condensed',sans-serif; font-size:10px; letter-spacing:2px; color:var(--text-muted); text-transform:uppercase; }
-.profile-row-val   { font-family:'Barlow Condensed',sans-serif; font-size:14px; color:var(--text-white); margin-top:2px; }
-.profile-section-label { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:10px; letter-spacing:3px; color:var(--text-muted); text-transform:uppercase; border-top:1px solid var(--border-subtle); padding-top:10px; }
+/* CHAT HEADER */
+.chat-hdr{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border);flex-shrink:0;background:#fff}
+.chat-hdr-info{flex:1;min-width:0}
+.chat-pname{font-size:15px;font-weight:700;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-pmeta{font-size:12px;color:var(--text-3);margin-top:1px}
+.chat-hdr-actions{display:flex;gap:6px;flex-shrink:0}
+.hdr-icon-btn{width:34px;height:34px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;color:var(--text-3);transition:background .15s,color .15s}
+.hdr-icon-btn:hover{background:var(--surface);color:var(--text)}
+.hdr-icon-btn.active{background:var(--blue-lt);color:var(--blue)}
+.hdr-icon-btn.danger:hover{background:var(--danger-lt);color:var(--danger)}
+.hdr-icon-btn.danger.is-blocked{background:var(--danger-lt);color:var(--danger)}
+.hdr-icon-btn svg{width:17px;height:17px}
 
-.panel-toggle-btn { background:none; border:1px solid var(--border-subtle); color:var(--text-muted); cursor:pointer; width:28px; height:28px; display:flex; align-items:center; justify-content:center; transition:border-color 0.2s,color 0.2s,transform 0.25s; font-size:12px; }
-.panel-toggle-btn:hover { border-color:var(--border-active); color:var(--text-primary); }
-.panel-toggle-btn.open { border-color:var(--accent); color:var(--accent); transform:scaleX(-1); }
+/* MESSAGES */
+.msgs{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column}
+.msgs::-webkit-scrollbar{width:5px}
+.msgs::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.msgs::-webkit-scrollbar-thumb:hover{background:var(--border-strong)}
 
-/* MODAL */
-.modal-overlay { position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; }
-.modal-overlay.open { display:flex; }
-.modal { width:400px; background:var(--bg-card); border:1px solid var(--border-mid); padding:32px; position:relative; animation:cardIn 0.2s ease; }
-.modal::before { content:''; position:absolute; top:0; left:0; width:24px; height:24px; border-top:2px solid var(--danger); border-left:2px solid var(--danger); }
-.modal-title { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:20px; letter-spacing:3px; text-transform:uppercase; color:var(--text-white); margin-bottom:12px; }
-.modal-body  { font-family:'Barlow',sans-serif; font-size:14px; color:var(--text-secondary); margin-bottom:24px; line-height:1.6; }
-.modal-actions { display:flex; gap:10px; }
-.modal-actions .btn { margin-top:0; flex:1; }
+.date-sep{display:flex;align-items:center;gap:10px;margin:14px 0 8px;font-size:11px;font-weight:600;color:var(--text-3)}
+.date-sep::before,.date-sep::after{content:'';flex:1;height:1px;background:var(--border)}
 
-/* NOTIF */
-.notif { position:fixed; bottom:24px; right:24px; z-index:9000; background:var(--bg-card); border:1px solid var(--border-mid); padding:12px 18px; font-family:'Barlow Condensed',sans-serif; font-size:14px; color:var(--text-white); letter-spacing:0.5px; animation:notifIn 0.3s ease; max-width:280px; }
-.notif::before { content:''; position:absolute; top:0; left:0; width:3px; height:100%; background:var(--accent); }
-.notif.danger::before  { background:var(--danger); }
-.notif.success::before { background:var(--success); }
+.msg-row{display:flex;align-items:flex-end;gap:6px;margin-bottom:2px}
+.msg-row.out{flex-direction:row-reverse}
 
-.loading-dots { display:inline-flex; gap:4px; align-items:center; }
-.loading-dots span { width:5px; height:5px; background:var(--accent); animation:dot 1.2s infinite; }
-.loading-dots span:nth-child(2) { animation-delay:0.2s; }
-.loading-dots span:nth-child(3) { animation-delay:0.4s; }
+/* Grouping corner tweaks */
+.msg-row.g-top    .bubble.in {border-radius:18px 18px 18px 4px}
+.msg-row.g-mid    .bubble.in {border-radius:4px 18px 18px 4px}
+.msg-row.g-bot    .bubble.in {border-radius:4px 18px 18px 18px}
+.msg-row.g-top    .bubble.out{border-radius:18px 18px 4px 18px}
+.msg-row.g-mid    .bubble.out{border-radius:18px 4px 4px 18px}
+.msg-row.g-bot    .bubble.out{border-radius:18px 4px 18px 18px}
+.msg-row.g-top .msg-av,.msg-row.g-mid .msg-av{visibility:hidden}
 
-@keyframes cardIn  { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-@keyframes msgIn   { from{opacity:0;transform:translateY(5px)}  to{opacity:1;transform:translateY(0)} }
-@keyframes notifIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
-@keyframes dot     { 0%,100%{opacity:0.2;transform:scale(0.8)} 50%{opacity:1;transform:scale(1)} }
+.msg-av{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
+.msg-spacer{width:26px;flex-shrink:0}
 
-.login-logo-top { font-family:'Barlow Condensed',sans-serif; font-size:11px; letter-spacing:4px; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px; }
-.login-title-big { font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif; font-size:64px; letter-spacing:4px; color:var(--accent); text-transform:uppercase; line-height:1; margin-bottom:36px; }
+.bubble{max-width:68%;padding:10px 14px;font-size:14px;line-height:1.55;word-break:break-word;border-radius:18px}
+.bubble.in {background:var(--surface-2);color:var(--text);border-radius:4px 18px 18px 18px}
+.bubble.out{background:var(--blue);color:#fff;border-radius:18px 18px 18px 4px}
+.bubble-time{font-size:10px;opacity:.55;margin-top:4px;display:block}
+.bubble.in  .bubble-time{text-align:left}
+.bubble.out .bubble-time{text-align:right}
+
+.msg-row.is-new{animation:msgIn .22s cubic-bezier(.16,1,.3,1) both}
+
+/* E2E BAR */
+.e2e-bar{display:flex;align-items:center;justify-content:center;gap:6px;padding:6px;border-top:1px solid var(--border);font-size:11px;color:var(--text-3);font-weight:500;background:var(--surface);flex-shrink:0}
+.e2e-bar svg{width:11px;height:11px;color:var(--success)}
+
+/* BLOCKED BANNERS */
+.block-bar{padding:10px 20px;text-align:center;font-size:13px;font-weight:500;flex-shrink:0}
+.block-bar.by-me{background:#fef2f2;color:var(--danger);border-top:1px solid #fecaca}
+.block-bar.by-them{background:#fefce8;color:#92400e;border-top:1px solid #fde68a}
+
+/* INPUT */
+.input-area{padding:10px 14px;border-top:1px solid var(--border);display:flex;align-items:flex-end;gap:8px;background:#fff;flex-shrink:0}
+.input-wrap{flex:1;display:flex;align-items:flex-end;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:3px 3px 3px 14px;transition:border-color .15s,box-shadow .15s}
+.input-wrap:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.msg-ta{flex:1;border:none;background:transparent;resize:none;font-size:14px;color:var(--text);line-height:1.5;min-height:34px;max-height:120px;padding:6px 0;outline:none}
+.msg-ta::placeholder{color:var(--text-3)}
+.send-btn{width:36px;height:36px;border-radius:50%;flex-shrink:0;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .12s;align-self:flex-end}
+.send-btn:hover{background:var(--blue-dk);transform:scale(1.06)}
+.send-btn:active{transform:scale(.94)}
+.send-btn:disabled{opacity:.32;cursor:not-allowed;transform:none}
+.send-btn svg{width:15px;height:15px;fill:#fff}
+
+/* PROFILE PANEL */
+.prof-panel{width:272px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;transform:translateX(16px);opacity:0;transition:transform .28s cubic-bezier(.16,1,.3,1),opacity .28s ease;pointer-events:none}
+.prof-panel.open{transform:translateX(0);opacity:1;pointer-events:all}
+.prof-panel::-webkit-scrollbar{width:3px}
+.prof-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.prof-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.prof-hdr span{font-size:13px;font-weight:600;color:var(--text-2)}
+.prof-body{padding:24px 18px;display:flex;flex-direction:column;gap:20px}
+.prof-av-wrap{display:flex;justify-content:center}
+.prof-name{text-align:center;font-size:18px;font-weight:800;letter-spacing:-.5px}
+.prof-user{text-align:center;font-size:13px;color:var(--text-3);margin-top:2px}
+.prof-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat-box{background:#fff;border:1px solid var(--border);border-radius:var(--r-sm);padding:12px;text-align:center}
+.stat-val{font-size:18px;font-weight:800;letter-spacing:-.5px}
+.stat-label{font-size:11px;color:var(--text-3);margin-top:2px;font-weight:500}
+.prof-divider{height:1px;background:var(--border)}
+.btn-block{width:100%;padding:11px;border-radius:var(--r-sm);font-size:14px;font-weight:600;background:var(--danger-lt);color:var(--danger);border:1.5px solid #fecaca;transition:background .15s}
+.btn-block:hover{background:#fecaca}
+.btn-block.unblock{background:var(--blue-lt);color:var(--blue);border-color:var(--blue-bd)}
+.btn-block.unblock:hover{background:#dbeafe}
+
+/* NOTIFICATIONS */
+#notif-root{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.notif{background:var(--text);color:#fff;border-radius:var(--r);padding:11px 16px;font-size:13px;font-weight:500;box-shadow:var(--sh-lg);display:flex;align-items:center;gap:8px;animation:notifIn .28s cubic-bezier(.16,1,.3,1) both;max-width:270px}
+.notif.success{background:#15803d}
+.notif.danger{background:var(--danger)}
+.notif-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.55);flex-shrink:0}
+
+/* SPINNER */
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .65s linear infinite;display:inline-block}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes notifIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* UTILS */
+.hidden{display:none!important}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="login-screen">
+<!-- ─── LANDING ─── -->
+<div id="landing">
+  <nav class="nav">
+    <div class="nav-logo"><div class="nav-dot"></div>Dark School Net</div>
+    <button class="nav-cta" onclick="openLogin()">Einloggen →</button>
+  </nav>
 
-  <!-- HERO BANNER -->
-  <div class="login-hero">
-    <div class="hero-eyebrow">Messenger</div>
-    <div class="hero-headline">Chatten mit<em>der ganzen Schule.</em></div>
-    <div class="hero-sub">
-      Dein privates Schulnetzwerk — <strong>nur für Schüler deiner Schule.</strong><br>
-      Nachrichten, die sonst niemand lesen kann.
+  <section class="hero">
+    <div class="hero-badge"><div class="hero-badge-dot"></div>Ende-zu-Ende verschlüsselt</div>
+    <h1 class="hero-h1">Dein Schulchat.<br><em>Privat. Sicher.</em></h1>
+    <p class="hero-sub">Schreib mit jedem aus deiner Schule — direkt, verschlüsselt, ohne Fremd-Account.</p>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="openLogin()">Jetzt einloggen</button>
+      <a class="btn-ghost" href="#features">Mehr erfahren ↓</a>
     </div>
-    <div class="hero-features">
-      <div class="hero-feature">Ende-zu-Ende verschlüsselte Nachrichten</div>
-      <div class="hero-feature">Nur Schüler deiner Schule sichtbar</div>
-      <div class="hero-feature">User blockieren & vollständige Privatsphäre</div>
-      <div class="hero-feature">Kein Account bei externen Diensten nötig</div>
-    </div>
-    <div class="hero-register-hint">
-      <div>Noch kein Account? Registriere dich zuerst im <strong>Dark School Net Account Management</strong> — danach kannst du dich hier einloggen.</div>
-    </div>
-  </div>
+  </section>
 
-  <!-- LOGIN FORM -->
-  <div class="login-side">
-    <div class="login-box">
-      
-      <div class="login-logo-top">Dark School Net — Chat</div>
-      <div class="login-title-big">CHAT</div>
-      <div class="field"><div class="field-label">Benutzername</div><input type="text" id="login-user" placeholder="shadow_felix" autocomplete="off" /></div>
-      <div class="field"><div class="field-label">Passwort</div><input type="password" id="login-pass" placeholder="••••••••" /></div>
-      <button class="btn" onclick="doLogin()"><span>EINLOGGEN</span></button>
-      <div class="error-msg" id="login-error"></div>
+  <section class="features" id="features">
+    <p class="feat-eyebrow">Features</p>
+    <h2 class="feat-h2">Alles was du brauchst.</h2>
+    <div class="feat-grid">
+      <div class="feat-card"><div class="feat-icon">🔒</div><h3 class="feat-h3">Ende-zu-Ende verschlüsselt</h3><p class="feat-p">Deine Nachrichten werden vor dem Absenden verschlüsselt. Nur du und dein Gesprächspartner können sie lesen — kein Server, kein Admin, niemand sonst.</p></div>
+      <div class="feat-card"><div class="feat-icon">⚡</div><h3 class="feat-h3">Echtzeit-Nachrichten</h3><p class="feat-p">Keine App nötig. Einfach im Browser öffnen — Nachrichten kommen sofort an, egal ob auf dem iPad oder Zuhause am PC.</p></div>
+      <div class="feat-card"><div class="feat-icon">🗝️</div><h3 class="feat-h3">Geräteübergreifend</h3><p class="feat-p">Dein verschlüsselter Schlüssel wird sicher mit deinem Passwort gesichert. Logg dich auf jedem Gerät ein — alle alten Nachrichten bleiben lesbar.</p></div>
+      <div class="feat-card"><div class="feat-icon">🛡️</div><h3 class="feat-h3">Blockieren</h3><p class="feat-p">Du hast die volle Kontrolle. Blockiere User jederzeit — sie können dir dann nicht mehr schreiben. Jederzeit umkehrbar.</p></div>
+      <div class="feat-card"><div class="feat-icon">🎨</div><h3 class="feat-h3">Kein Datenmüll</h3><p class="feat-p">Keine Werbung. Kein Tracking. Kein Account bei Apple, Google oder Meta nötig. Dark School Net gehört euch.</p></div>
+      <div class="feat-card"><div class="feat-icon">🔎</div><h3 class="feat-h3">Alle Schüler finden</h3><p class="feat-p">Suche nach jedem registrierten Schüler — oder stöbere durch die vollständige Liste. Schreib wem du willst.</p></div>
     </div>
-  </div>
+  </section>
 
+  <section class="reg-band">
+    <h2>Noch kein Account?</h2>
+    <p>Registriere dich zuerst im Dark School Net Account Management — danach kannst du dich hier einloggen.</p>
+    <button class="btn-primary" style="margin-top:4px">Zum Account Management →</button>
+  </section>
+
+  <footer class="footer">
+    <p>© Dark School Net — Nur für Schulinterne</p>
+    <p>Ende-zu-Ende verschlüsselt · Kein Tracking</p>
+  </footer>
 </div>
 
-<!-- APP -->
-<div id="app">
-
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-top">
-        <div class="app-name">DARK SCHOOL <span>NET</span></div>
-        <button class="logout-btn" onclick="doLogout()">LOGOUT</button>
-      </div>
-      <div class="user-badge">Eingeloggt als <strong id="hdr-username">—</strong> &nbsp;<span id="hdr-school" style="color:var(--text-muted);font-size:10px;letter-spacing:1px;border:1px solid var(--border-subtle);padding:1px 5px;"></span></div>
+<!-- ─── LOGIN MODAL ─── -->
+<div class="modal-overlay" id="login-modal">
+  <div class="login-card">
+    <button class="modal-x" onclick="closeLogin()">✕</button>
+    <div class="login-logo-row">
+      <div class="login-logo-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
+      <div class="login-logo-text">Dark School Net</div>
     </div>
-
-    <div class="tabs">
-      <div class="tab active" id="tab-chats"   onclick="switchTab('chats')">CHATS</div>
-      <div class="tab"        id="tab-users"   onclick="switchTab('users')">USERS</div>
-      <div class="tab"        id="tab-blocked" onclick="switchTab('blocked')">BLOCKIERT</div>
-    </div>
-
-    <div class="tab-panel active" id="panel-chats">
-      <div class="conv-list" id="conv-list"><div class="empty-state">Noch keine Chats</div></div>
-    </div>
-
-    <div class="tab-panel" id="panel-users">
-      <div class="sidebar-header" style="border-bottom:1px solid var(--border-subtle);padding:10px 16px;">
-        <div class="search-wrap">
-          <span class="search-icon">⌕</span>
-          <input type="text" id="search-input" placeholder="Suchen..." oninput="doSearch()" />
-        </div>
-      </div>
-      <div class="conv-list" id="users-list"><div class="empty-state"><span class="loading-dots"><span></span><span></span><span></span></span></div></div>
-    </div>
-
-    <div class="tab-panel" id="panel-blocked">
-      <div class="conv-list" id="blocked-list"><div class="empty-state">Keine blockierten User</div></div>
-    </div>
-  </div>
-
-  <!-- CHAT -->
-  <div class="chat-area">
-    <div class="chat-empty" id="chat-empty">
-      <div class="chat-empty-icon">◼</div>
-      <h2>Dark School Net</h2>
-      <p>Wähle einen Chat oder suche einen User</p>
-    </div>
-
-    <div id="chat-view" style="display:none;flex-direction:column;height:100%;">
-      <div class="chat-header">
-        <div class="chat-header-left">
-          <div class="avatar" id="chat-avatar">?</div>
-          <div>
-            <div class="chat-partner-name" id="chat-name">—</div>
-            <div class="chat-partner-meta" id="chat-meta">—</div>
-          </div>
-        </div>
-        <div class="chat-header-actions">
-          <button class="btn btn-sm btn-danger" onclick="toggleBlock()"><span id="block-btn-txt">BLOCKIEREN</span></button>
-          <button class="panel-toggle-btn" id="panel-toggle-btn" onclick="toggleProfilePanel()" title="Profil anzeigen">▸</button>
-        </div>
-      </div>
-
-      <div class="e2e-banner">🔒 &nbsp;Nachrichten sind Ende-zu-Ende verschlüsselt</div>
-
-      <div class="messages-wrap" id="messages-wrap"></div>
-      <div id="blocked-banner"       class="blocked-banner" style="display:none;">Du hast diesen User blockiert — Nachrichten deaktiviert</div>
-      <div id="youre-blocked-banner" class="blocked-banner" style="display:none;">Dieser User hat dich blockiert</div>
-      <div class="chat-input-wrap" id="input-wrap">
-        <textarea class="chat-input-box" id="msg-input" placeholder="Nachricht schreiben..." rows="1" onkeydown="inputKeydown(event)" oninput="autoResize(this)"></textarea>
-        <button class="send-btn" id="send-btn" onclick="sendMessage()">SEND</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- RIGHT PANEL -->
-  <div class="profile-panel" id="profile-panel">
-    <div class="profile-panel-inner">
-      <div class="profile-avatar-lg" id="prof-avatar">?</div>
-      <div class="profile-username"  id="prof-username">—</div>
-      <div class="profile-row"><div class="profile-row-label">Echter Name</div><div class="profile-row-val" id="prof-realname">—</div></div>
-      <div class="profile-row"><div class="profile-row-label">Klasse</div><div class="profile-row-val" id="prof-grade">—</div></div>
-      <div class="profile-row"><div class="profile-row-label">Dabei seit</div><div class="profile-row-val" id="prof-since">—</div></div>
-      <div class="profile-section-label">AKTIONEN</div>
-      <button class="btn btn-sm btn-danger" onclick="toggleBlock()"><span id="prof-block-txt">BLOCKIEREN</span></button>
-    </div>
+    <div class="login-h2">Willkommen zurück</div>
+    <div class="login-sub">Logg dich mit deinem Account ein.</div>
+    <div class="field"><label>Benutzername</label><input type="text" id="login-user" placeholder="z. B. shadow_felix" autocomplete="off"/></div>
+    <div class="field"><label>Passwort</label><input type="password" id="login-pass" placeholder="Dein Passwort"/></div>
+    <button class="submit-btn" id="login-btn" onclick="doLogin()">Einloggen</button>
+    <div class="field-error" id="login-err"></div>
   </div>
 </div>
 
-<!-- MODAL -->
+<!-- ─── CONFIRM MODAL ─── -->
 <div class="modal-overlay" id="confirm-modal">
-  <div class="modal">
-    <div class="modal-title" id="modal-title">BESTÄTIGEN</div>
-    <div class="modal-body"  id="modal-body">Bist du sicher?</div>
-    <div class="modal-actions">
-      <button class="btn btn-danger" id="modal-confirm-btn"><span>JA</span></button>
-      <button class="btn btn-ghost"  onclick="closeModal()"><span>ABBRECHEN</span></button>
+  <div class="confirm-card">
+    <div class="confirm-h3" id="conf-title">Bestätigen</div>
+    <div class="confirm-p"  id="conf-body">Bist du sicher?</div>
+    <div class="confirm-row">
+      <button class="btn-ok"     id="conf-ok">Ja, sicher</button>
+      <button class="btn-cancel" onclick="closeConfirm()">Abbrechen</button>
     </div>
   </div>
 </div>
+
+<!-- ─── APP ─── -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-header">
+      <div class="me-av" id="me-av">?</div>
+      <div class="me-info">
+        <div class="me-name" id="me-name">—</div>
+        <div class="me-label">Dark School Net</div>
+      </div>
+      <button class="icon-btn danger" onclick="doLogout()" title="Ausloggen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+
+    <div class="sb-tabs">
+      <button class="sb-tab active" id="tab-chats"   onclick="switchTab('chats')">Chats</button>
+      <button class="sb-tab"        id="tab-people"  onclick="switchTab('people')">Personen</button>
+      <button class="sb-tab"        id="tab-blocked" onclick="switchTab('blocked')">Blockiert</button>
+    </div>
+
+    <!-- CHATS PANEL -->
+    <div class="tab-panel active" id="panel-chats">
+      <div class="list-scroll" id="conv-list">
+        <div class="empty-list">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <p>Noch keine Chats</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PEOPLE PANEL -->
+    <div class="tab-panel" id="panel-people">
+      <div class="sb-search">
+        <div class="search-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="search-inp" placeholder="Suchen…" oninput="filterPeople()"/>
+        </div>
+      </div>
+      <div class="list-scroll" id="people-list">
+        <div class="empty-list"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- BLOCKED PANEL -->
+    <div class="tab-panel" id="panel-blocked">
+      <div class="list-scroll" id="blocked-list">
+        <div class="empty-list">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          <p>Niemand blockiert</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CHAT MAIN -->
+  <main class="chat-main">
+    <div class="chat-empty" id="chat-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      <h3>Kein Chat geöffnet</h3>
+      <p>Wähle ein Gespräch oder such nach jemandem.</p>
+    </div>
+    <div id="chat-view" class="hidden" style="display:flex;flex-direction:column;height:100%">
+      <div class="chat-hdr">
+        <div class="av av-sm" id="chat-av">?</div>
+        <div class="chat-hdr-info">
+          <div class="chat-pname" id="chat-name">—</div>
+          <div class="chat-pmeta" id="chat-meta">—</div>
+        </div>
+        <div class="chat-hdr-actions">
+          <button class="hdr-icon-btn" id="info-btn" onclick="toggleProfile()" title="Profil">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          </button>
+          <button class="hdr-icon-btn danger" id="block-btn" onclick="toggleBlock()" title="Blockieren">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="msgs" id="msgs"></div>
+
+      <div class="e2e-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Ende-zu-Ende verschlüsselt
+      </div>
+
+      <div id="bar-by-me"   class="block-bar by-me   hidden">Du hast diesen User blockiert — Nachrichten deaktiviert.</div>
+      <div id="bar-by-them" class="block-bar by-them hidden">Dieser User hat dich blockiert.</div>
+
+      <div class="input-area" id="input-area">
+        <div class="input-wrap">
+          <textarea class="msg-ta" id="msg-inp" placeholder="Nachricht…" rows="1"
+            onkeydown="inputKd(event)" oninput="autoResize(this)"></textarea>
+          <button class="send-btn" id="send-btn" onclick="sendMsg()">
+            <svg viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- PROFILE PANEL -->
+  <aside class="prof-panel" id="prof-panel">
+    <div class="prof-hdr">
+      <span>Profil</span>
+      <button class="icon-btn" onclick="toggleProfile()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="prof-body">
+      <div class="prof-av-wrap"><div class="av av-lg" id="prof-av">?</div></div>
+      <div><div class="prof-name" id="prof-name">—</div><div class="prof-user" id="prof-user">—</div></div>
+      <div class="prof-stats">
+        <div class="stat-box"><div class="stat-val" id="prof-grade">—</div><div class="stat-label">Klasse</div></div>
+        <div class="stat-box"><div class="stat-val" id="prof-since">—</div><div class="stat-label">Dabei seit</div></div>
+      </div>
+      <div class="prof-divider"></div>
+      <button class="btn-block" id="prof-block-btn" onclick="toggleBlock()">Blockieren</button>
+    </div>
+  </aside>
+</div>
+
+<div id="notif-root"></div>
 
 <script>
-const SUPABASE_URL  = 'https://sigjwzivusuzmhvixtbm.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpZ2p3eml2dXN1em1odml4dGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNTI3MDksImV4cCI6MjA4ODcyODcwOX0.j0yB-NYM5HOkfKVBz24rWMBQNF8w-uEFjX55UGeD30E';
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+/* ─── SUPABASE ─── */
+const SUPA_URL = 'https://sigjwzivusuzmhvixtbm.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpZ2p3eml2dXN1em1odml4dGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNTI3MDksImV4cCI6MjA4ODcyODcwOX0.j0yB-NYM5HOkfKVBz24rWMBQNF8w-uEFjX55UGeD30E';
+const db = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-/* PASSWORD */
-async function hashPassword(pw, saltHex) {
-  const enc=new TextEncoder(), salt=new Uint8Array(saltHex.match(/.{2}/g).map(h=>parseInt(h,16)));
-  const k=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveBits']);
-  const b=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations:200000},k,256);
-  return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
+/* ─── PASSWORD CRYPTO ─── */
+async function hashPw(pw, saltHex) {
+  const enc  = new TextEncoder();
+  const salt = new Uint8Array(saltHex.match(/.{2}/g).map(h=>parseInt(h,16)));
+  const key  = await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations:200000},key,256);
+  return Array.from(new Uint8Array(bits)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-async function verifyPassword(pw,saltHex,hash){return(await hashPassword(pw,saltHex))===hash;}
+const verifyPw = async(pw,salt,hash)=>(await hashPw(pw,salt))===hash;
 
-/* E2E CRYPTO */
-async function deriveAESFromPassword(pw,saltHex){
-  const enc=new TextEncoder(),salt=new Uint8Array(saltHex.match(/.{2}/g).map(h=>parseInt(h,16)));
-  const km=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveKey']);
-  return crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt,iterations:200000},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+/* ─── E2E CRYPTO ─── */
+async function aesKeyFromPw(pw,saltHex){
+  const enc=new TextEncoder();
+  const salt=new Uint8Array(saltHex.match(/.{2}/g).map(h=>parseInt(h,16)));
+  const mat=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt,iterations:100000},mat,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
 }
-async function encryptBlob(buf,k){
+async function aesEncrypt(key,data){
   const iv=crypto.getRandomValues(new Uint8Array(12));
-  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,buf);
-  return btoa(String.fromCharCode(...iv))+'.'+btoa(String.fromCharCode(...new Uint8Array(ct)));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(data));
+  const b64=x=>btoa(String.fromCharCode(...new Uint8Array(x)));
+  return b64(iv)+'.'+b64(ct);
 }
-async function decryptBlob(blob,k){
-  const[a,b]=blob.split('.');
-  const iv=Uint8Array.from(atob(a),c=>c.charCodeAt(0)),ct=Uint8Array.from(atob(b),c=>c.charCodeAt(0));
-  return crypto.subtle.decrypt({name:'AES-GCM',iv},k,ct);
+async function aesDecrypt(key,blob){
+  const[ivB,ctB]=blob.split('.');
+  const de=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:de(ivB)},key,de(ctB));
+  return new TextDecoder().decode(pt);
 }
-async function genKeypair(){return crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveKey']);}
-async function exportPubB64(pub){const r=await crypto.subtle.exportKey('raw',pub);return btoa(String.fromCharCode(...new Uint8Array(r)));}
-async function importPubB64(b64){const r=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));return crypto.subtle.importKey('raw',r,{name:'ECDH',namedCurve:'P-256'},false,[]);}
-async function deriveShared(priv,pub){return crypto.subtle.deriveKey({name:'ECDH',public:pub},priv,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
-async function encryptMsg(text,k){
-  const iv=crypto.getRandomValues(new Uint8Array(12));
-  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(text));
-  return 'E2E.'+btoa(String.fromCharCode(...iv))+'.'+btoa(String.fromCharCode(...new Uint8Array(ct)));
-}
-async function decryptMsg(c,k){
-  if(!c||!c.startsWith('E2E.'))return c;
-  try{const[,a,b]=c.split('.');const iv=Uint8Array.from(atob(a),x=>x.charCodeAt(0)),ct=Uint8Array.from(atob(b),x=>x.charCodeAt(0));return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv},k,ct));}catch{return'🔒';}
+async function genECDH(){return crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveKey','deriveBits']);}
+async function exportPub(k){const r=await crypto.subtle.exportKey('spki',k);return btoa(String.fromCharCode(...new Uint8Array(r)));}
+async function importPub(b64){const r=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));return crypto.subtle.importKey('spki',r,{name:'ECDH',namedCurve:'P-256'},true,[]);}
+async function ecdhAES(priv,pubB64){const pub=await importPub(pubB64);return crypto.subtle.deriveKey({name:'ECDH',public:pub},priv,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
+async function encryptMsg(priv,theirPub,text){const sh=await ecdhAES(priv,theirPub);return aesEncrypt(sh,text);}
+async function decryptMsg(priv,theirPub,ct){const sh=await ecdhAES(priv,theirPub);return aesDecrypt(sh,ct);}
+
+/* ─── SESSION ─── */
+const saveSession=u=>sessionStorage.setItem('dsn_s',JSON.stringify(u));
+const getSession=()=>{try{return JSON.parse(sessionStorage.getItem('dsn_s'));}catch{return null;}};
+const clearSession=()=>sessionStorage.removeItem('dsn_s');
+
+/* ─── STATE ─── */
+let me=null,myPriv=null,currentPartner=null;
+let allUsers=[],blockedList=[],renderedIds=new Set();
+let pollTm=null,convTm=null,loginPw='';
+
+/* ─── AVATAR COLOR ─── */
+function avColor(s=''){
+  const p=['#2563eb','#7c3aed','#db2777','#ea580c','#16a34a','#0891b2','#be123c','#9333ea'];
+  let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))&0x7fffffff;
+  return p[h%p.length];
 }
 
-/* SESSION */
-function saveSession(u){sessionStorage.setItem('dsn_session',JSON.stringify(u));}
-function getSession(){try{return JSON.parse(sessionStorage.getItem('dsn_session'));}catch{return null;}}
-function clearSession(){sessionStorage.removeItem('dsn_session');}
-
-/* STATE */
-let me=null, myPrivateKey=null, currentPartner=null, currentSharedKey=null;
-let pollTimer=null, convPollTimer=null, blockedList=[], searchTimer=null;
-let allUsersCache=[], profileOpen=false;
-// Incremental poll: track the created_at of the newest fetched message
-let lastMsgTs=null;
-
+/* ─── INIT ─── */
 window.addEventListener('DOMContentLoaded',()=>{
+  const s=getSession();
+  if(s){me=s;enterApp(null);}
   document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
   document.getElementById('login-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('login-pass').focus();});
 });
 
-/* LOGIN */
+/* ─── LOGIN ─── */
+function openLogin(){document.getElementById('login-modal').classList.add('open');setTimeout(()=>document.getElementById('login-user').focus(),50);}
+function closeLogin(){document.getElementById('login-modal').classList.remove('open');}
+
 async function doLogin(){
   const user=document.getElementById('login-user').value.trim().toLowerCase();
-  const pass=document.getElementById('login-pass').value;
-  const err=document.getElementById('login-error');
-  err.textContent='';
-  if(!user||!pass){err.textContent='Alle Felder ausfüllen.';return;}
-  const s=document.querySelector('#login-screen .btn span');
-  s.innerHTML='<span class="loading-dots"><span></span><span></span><span></span></span>';
+  const pw=document.getElementById('login-pass').value;
+  const errEl=document.getElementById('login-err');
+  const btn=document.getElementById('login-btn');
+  errEl.textContent='';
+  if(!user||!pw){errEl.textContent='Bitte alle Felder ausfüllen.';return;}
+  btn.disabled=true;btn.textContent='Einloggen…';
   try{
     const{data,error}=await db.from('dsn_users').select('*').eq('username',user).single();
-    if(error||!data){err.textContent='Benutzername nicht gefunden.';s.textContent='EINLOGGEN';return;}
-    if(!await verifyPassword(pass,data.salt,data.password_hash)){err.textContent='Falsches Passwort.';s.textContent='EINLOGGEN';return;}
-    me=data;
-    await setupE2EKeys(pass);
-    saveSession(me);
-    await enterApp();
-  }catch(e){console.error(e);err.textContent='Verbindungsfehler.';s.textContent='EINLOGGEN';}
+    if(error||!data){errEl.textContent='Benutzername nicht gefunden.';return;}
+    if(!(await verifyPw(pw,data.salt,data.password_hash))){errEl.textContent='Falsches Passwort.';return;}
+    me=data;loginPw=pw;saveSession(me);
+    closeLogin();await enterApp(pw);
+  }catch{errEl.textContent='Verbindungsfehler.';}
+  finally{btn.disabled=false;btn.textContent='Einloggen';}
 }
 
-async function setupE2EKeys(pw){
-  const aes=await deriveAESFromPassword(pw,me.salt);
-  if(!me.encrypted_private_key||!me.public_key){
-    const kp=await genKeypair();
-    const pub=await exportPubB64(kp.publicKey);
-    const enc=await encryptBlob(await crypto.subtle.exportKey('pkcs8',kp.privateKey),aes);
-    await db.from('dsn_users').update({public_key:pub,encrypted_private_key:enc}).eq('id',me.id);
-    me.public_key=pub;me.encrypted_private_key=enc;myPrivateKey=kp.privateKey;
-  }else{
-    try{
-      myPrivateKey=await crypto.subtle.importKey('pkcs8',await decryptBlob(me.encrypted_private_key,aes),{name:'ECDH',namedCurve:'P-256'},false,['deriveKey']);
-    }catch{
-      const kp=await genKeypair();
-      const pub=await exportPubB64(kp.publicKey);
-      const enc=await encryptBlob(await crypto.subtle.exportKey('pkcs8',kp.privateKey),aes);
-      await db.from('dsn_users').update({public_key:pub,encrypted_private_key:enc}).eq('id',me.id);
-      me.public_key=pub;me.encrypted_private_key=enc;myPrivateKey=kp.privateKey;
-    }
-  }
-}
-
-async function enterApp(){
-  document.getElementById('login-screen').style.display='none';
+async function enterApp(pw){
+  if(pw)await setupE2E(pw);
+  document.getElementById('landing').classList.add('fade-out');
+  setTimeout(()=>document.getElementById('landing').style.display='none',400);
   document.getElementById('app').classList.add('visible');
-  document.getElementById('hdr-username').textContent=me.username;
-  if(me.school){const sb=document.getElementById('hdr-school');if(sb)sb.textContent=me.school;}
-  await loadBlockedList();
-  await loadConversations();
-  await loadAllUsers();
-  startConvPoll();
+  const col=avColor(me.username);
+  const av=document.getElementById('me-av');av.style.background=col;av.textContent=me.username[0].toUpperCase();
+  document.getElementById('me-name').textContent=me.username;
+  await loadBlockedList();await loadAllUsers();await loadConversations();
+  convTm=setInterval(loadConversations,5000);
 }
 
-function doLogout(){
-  clearSession();clearInterval(pollTimer);clearInterval(convPollTimer);
-  me=null;myPrivateKey=null;currentPartner=null;currentSharedKey=null;lastMsgTs=null;
+async function doLogout(){
+  clearInterval(pollTm);clearInterval(convTm);
+  clearSession();me=null;myPriv=null;currentPartner=null;renderedIds.clear();loginPw='';
   document.getElementById('app').classList.remove('visible');
-  document.getElementById('login-screen').style.display='flex';
-  document.getElementById('login-user').value='';document.getElementById('login-pass').value='';
+  document.getElementById('chat-view').classList.add('hidden');
+  document.getElementById('chat-empty').classList.remove('hidden');
+  document.getElementById('prof-panel').classList.remove('open');
+  document.getElementById('landing').style.display='';
+  setTimeout(()=>document.getElementById('landing').classList.remove('fade-out'),10);
 }
 
-/* PROFILE PANEL */
-function toggleProfilePanel(){
-  profileOpen=!profileOpen;
-  document.getElementById('profile-panel').classList.toggle('open',profileOpen);
-  document.getElementById('panel-toggle-btn').classList.toggle('open',profileOpen);
+/* ─── E2E KEY SETUP ─── */
+async function setupE2E(pw){
+  try{
+    if(me.encrypted_private_key&&me.public_key){
+      const aes=await aesKeyFromPw(pw,me.salt);
+      const jwk=await aesDecrypt(aes,me.encrypted_private_key);
+      myPriv=await crypto.subtle.importKey('jwk',JSON.parse(jwk),{name:'ECDH',namedCurve:'P-256'},true,['deriveKey','deriveBits']);
+    }else{
+      const pair=await genECDH();myPriv=pair.privateKey;
+      const pubB64=await exportPub(pair.publicKey);
+      const jwk=JSON.stringify(await crypto.subtle.exportKey('jwk',pair.privateKey));
+      const aes=await aesKeyFromPw(pw,me.salt);
+      const encPriv=await aesEncrypt(aes,jwk);
+      await db.from('dsn_users').update({public_key:pubB64,encrypted_private_key:encPriv}).eq('id',me.id);
+      me.public_key=pubB64;me.encrypted_private_key=encPriv;saveSession(me);
+    }
+  }catch(e){console.warn('E2E setup:',e);}
 }
 
-/* BLOCKED */
+/* ─── BLOCKED LIST ─── */
 async function loadBlockedList(){
   const{data}=await db.from('dsn_blocked').select('*').eq('blocker_id',me.id);
-  blockedList=data||[];
-  renderBlockedTab();
+  blockedList=data||[];renderBlockedTab();
 }
+const iBlocked=id=>blockedList.some(b=>b.blocked_id===id);
+async function theyBlockedMe(uid){
+  const{data}=await db.from('dsn_blocked').select('id').eq('blocker_id',uid).eq('blocked_id',me.id).maybeSingle();
+  return!!data;
+}
+
 async function renderBlockedTab(){
-  const list=document.getElementById('blocked-list');
-  if(!blockedList.length){list.innerHTML='<div class="empty-state">Keine blockierten User</div>';return;}
+  const el=document.getElementById('blocked-list');
+  if(!blockedList.length){el.innerHTML=`<div class="empty-list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg><p>Niemand blockiert</p></div>`;return;}
   const ids=blockedList.map(b=>b.blocked_id);
   const{data:users}=await db.from('dsn_users').select('id,username,real_name,grade').in('id',ids);
   const map={};(users||[]).forEach(u=>map[u.id]=u);
-  list.innerHTML=blockedList.map(b=>{const u=map[b.blocked_id]||{};
-    return`<div class="conv-item" onclick="openChatWith('${b.blocked_id}')">
-      <div class="avatar">${(u.username||'?')[0].toUpperCase()}</div>
-      <div class="conv-info"><div class="conv-name">${esc(u.username||'?')}</div>
-      <div class="conv-preview">${esc(u.real_name||'')} · Klasse ${u.grade||'?'}</div></div>
-      <span class="blocked-tag">BLOCKIERT</span></div>`;}).join('');
+  el.innerHTML=`<div class="section-label">${blockedList.length} blockiert</div>`+
+    blockedList.map(b=>{const u=map[b.blocked_id]||{};const col=avColor(u.username||'');
+      return`<div class="conv-item" onclick="openChat('${b.blocked_id}')">
+        <div class="av av-sm" style="background:${col}">${(u.username||'?')[0].toUpperCase()}</div>
+        <div class="ci-info"><div class="ci-name">${esc(u.username||'unbekannt')}</div><div class="ci-sub">Klasse ${u.grade||'?'}</div></div>
+      </div>`;}).join('');
 }
-function iBlocked(id){return blockedList.some(b=>b.blocked_id===id);}
-async function isBlockedBy(uid){const{data}=await db.from('dsn_blocked').select('id').eq('blocker_id',uid).eq('blocked_id',me.id).maybeSingle();return!!data;}
 
+/* ─── BLOCK / UNBLOCK ─── */
 async function toggleBlock(){
   if(!currentPartner)return;
   const bl=iBlocked(currentPartner.id);
-  openModal(bl?'BLOCKIERUNG AUFHEBEN':'USER BLOCKIEREN',
-    bl?`<strong>${currentPartner.username}</strong> wirklich entsperren?`
-      :`<strong>${currentPartner.username}</strong> blockieren? Sie können dir nicht mehr schreiben.`,
+  openConfirm(
+    bl?'Blockierung aufheben?':`${currentPartner.username} blockieren?`,
+    bl?`${currentPartner.username} kann dir danach wieder schreiben.`
+      :`${currentPartner.username} kann dir dann nicht mehr schreiben.`,
     async()=>{
-      closeModal();
-      if(bl){await db.from('dsn_blocked').delete().eq('blocker_id',me.id).eq('blocked_id',currentPartner.id);showNotif(`${currentPartner.username} entsperrt`,'success');}
-      else{await db.from('dsn_blocked').insert({blocker_id:me.id,blocked_id:currentPartner.id});showNotif(`${currentPartner.username} blockiert`,'danger');}
-      await loadBlockedList();updateBlockUI();
-    });
+      closeConfirm();
+      if(bl){await db.from('dsn_blocked').delete().eq('blocker_id',me.id).eq('blocked_id',currentPartner.id);notify('Blockierung aufgehoben','success');}
+      else{await db.from('dsn_blocked').insert({blocker_id:me.id,blocked_id:currentPartner.id});notify(`${currentPartner.username} blockiert`,'danger');}
+      await loadBlockedList();refreshBlockUI();
+    }
+  );
 }
-function updateBlockUI(){
+
+function refreshBlockUI(){
   if(!currentPartner)return;
   const bl=iBlocked(currentPartner.id);
-  const t=bl?'ENTSPERREN':'BLOCKIEREN';
-  document.getElementById('block-btn-txt').textContent=t;
-  document.getElementById('prof-block-txt').textContent=t;
-  document.getElementById('blocked-banner').style.display=bl?'block':'none';
-  if(!bl)document.getElementById('input-wrap').style.display='flex';
+  document.getElementById('block-btn').classList.toggle('is-blocked',bl);
+  const pb=document.getElementById('prof-block-btn');
+  pb.textContent=bl?'Entsperren':'Blockieren';
+  pb.classList.toggle('unblock',bl);
+  document.getElementById('bar-by-me').classList.toggle('hidden',!bl);
+  document.getElementById('input-area').classList.toggle('hidden',bl);
 }
 
-/* CONVERSATIONS */
-async function loadConversations(){
-  const{data:sent}=await db.from('dsn_messages').select('to_id,created_at').eq('from_id',me.id).order('created_at',{ascending:false});
-  const{data:recv}=await db.from('dsn_messages').select('from_id,created_at').eq('to_id',me.id).order('created_at',{ascending:false});
-  const pm=new Map();
-  (sent||[]).forEach(m=>{const c=pm.get(m.to_id);if(!c||new Date(m.created_at)>new Date(c))pm.set(m.to_id,m.created_at);});
-  (recv||[]).forEach(m=>{const c=pm.get(m.from_id);if(!c||new Date(m.created_at)>new Date(c))pm.set(m.from_id,m.created_at);});
-  if(!pm.size){document.getElementById('conv-list').innerHTML='<div class="empty-state">Noch keine Chats</div>';return;}
-  let uq=db.from('dsn_users').select('id,username,real_name,grade').in('id',[...pm.keys()]);if(!me.is_admin&&me.school)uq=uq.eq('school',me.school);
-  const{data:users}=await uq;
-  const um={};(users||[]).forEach(u=>um[u.id]=u);
-  const convs=[...pm.entries()].map(([id,ts])=>({u:um[id],ts})).filter(c=>c.u).sort((a,b)=>new Date(b.ts)-new Date(a.ts));
-  const{data:ur}=await db.from('dsn_messages').select('from_id').eq('to_id',me.id).eq('read',false);
-  const unread={};(ur||[]).forEach(m=>{unread[m.from_id]=(unread[m.from_id]||0)+1;});
-  document.getElementById('conv-list').innerHTML=convs.map(c=>{
-    const act=currentPartner?.id===c.u.id?'active':'';
-    const cnt=unread[c.u.id]||0;
-    return`<div class="conv-item ${act}" onclick="openChatWith('${c.u.id}')">
-      <div class="avatar">${c.u.username[0].toUpperCase()}</div>
-      <div class="conv-info"><div class="conv-name">${esc(c.u.username)}</div>
-      <div class="conv-preview" style="color:var(--text-muted);font-size:11px;">🔒 verschlüsselt</div></div>
-      <div class="conv-meta"><span class="conv-time">${fmtTime(c.ts)}</span>
-      ${cnt?`<span class="unread-badge">${cnt}</span>`:''}</div></div>`;}).join('');
-}
-function startConvPoll(){clearInterval(convPollTimer);convPollTimer=setInterval(loadConversations,5000);}
-
-/* ALL USERS */
+/* ─── ALL USERS ─── */
 async function loadAllUsers(){
-  let q=db.from('dsn_users').select('id,username,real_name,grade').neq('id',me.id).order('username');
-  if(!me.is_admin && me.school) q=q.eq('school',me.school);
-  const{data}=await q;
-  allUsersCache=data||[];renderUserList('');
+  const{data}=await db.from('dsn_users').select('id,username,real_name,grade').neq('id',me.id).order('username');
+  allUsers=data||[];renderPeople(allUsers);
 }
-function renderUserList(q){
-  const res=document.getElementById('users-list');
-  const f=q?allUsersCache.filter(u=>u.username.toLowerCase().includes(q)||u.real_name.toLowerCase().includes(q)):allUsersCache;
-  if(!f.length){res.innerHTML='<div class="empty-state">Kein User gefunden</div>';return;}
-  res.innerHTML=f.map(u=>`<div class="conv-item" onclick="openChatWith('${u.id}')">
-    <div class="avatar">${u.username[0].toUpperCase()}</div>
-    <div class="conv-info"><div class="conv-name">${esc(u.username)}${iBlocked(u.id)?' <span class="blocked-tag">BLOCKIERT</span>':''}</div>
-    <div class="conv-preview">${esc(u.real_name)} · Klasse ${u.grade}</div></div></div>`).join('');
+function renderPeople(list){
+  const el=document.getElementById('people-list');
+  if(!list.length){el.innerHTML=`<div class="empty-list"><p>Niemand gefunden</p></div>`;return;}
+  el.innerHTML=`<div class="section-label">${list.length} Personen</div>`+
+    list.map(u=>{const col=avColor(u.username);const bl=iBlocked(u.id)?` <span style="font-size:10px;color:var(--danger);font-weight:600">Blockiert</span>`:'';
+      return`<div class="conv-item" onclick="openChat('${u.id}')">
+        <div class="av av-sm" style="background:${col}">${u.username[0].toUpperCase()}</div>
+        <div class="ci-info"><div class="ci-name">${esc(u.username)}${bl}</div><div class="ci-sub">${esc(u.real_name)} · Klasse ${u.grade}</div></div>
+      </div>`;}).join('');
 }
-function doSearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>renderUserList(document.getElementById('search-input').value.trim().toLowerCase()),200);}
+function filterPeople(){
+  const q=document.getElementById('search-inp').value.trim().toLowerCase();
+  renderPeople(q?allUsers.filter(u=>u.username.includes(q)||u.real_name.toLowerCase().includes(q)):allUsers);
+}
 
-/* OPEN CHAT */
-async function openChatWith(uid){
+/* ─── CONVERSATIONS ─── */
+async function loadConversations(){
+  const[{data:sent},{data:recv}]=await Promise.all([
+    db.from('dsn_messages').select('to_id,created_at').eq('from_id',me.id).order('created_at',{ascending:false}),
+    db.from('dsn_messages').select('from_id,created_at,read').eq('to_id',me.id).order('created_at',{ascending:false})
+  ]);
+  const ids=new Set();(sent||[]).forEach(m=>ids.add(m.to_id));(recv||[]).forEach(m=>ids.add(m.from_id));
+  if(!ids.size){document.getElementById('conv-list').innerHTML=`<div class="empty-list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><p>Noch keine Chats</p></div>`;return;}
+  const{data:users}=await db.from('dsn_users').select('id,username,real_name,grade').in('id',[...ids]);
+  const umap={};(users||[]).forEach(u=>umap[u.id]=u);
+  const unreadMap={};(recv||[]).filter(m=>!m.read).forEach(m=>{unreadMap[m.from_id]=(unreadMap[m.from_id]||0)+1;});
+  const convs=[];
+  for(const uid of ids){
+    const u=umap[uid];if(!u)continue;
+    const last=[...(sent||[]).filter(m=>m.to_id===uid),...(recv||[]).filter(m=>m.from_id===uid)]
+      .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0];
+    convs.push({user:u,last});
+  }
+  convs.sort((a,b)=>new Date(b.last?.created_at||0)-new Date(a.last?.created_at||0));
+  document.getElementById('conv-list').innerHTML=convs.map(c=>{
+    const col=avColor(c.user.username);const active=currentPartner?.id===c.user.id?' active':'';
+    const cnt=unreadMap[c.user.id]||0;const badge=cnt?`<div class="unread-badge">${cnt}</div>`:'';
+    return`<div class="conv-item${active}" onclick="openChat('${c.user.id}')">
+      <div class="av av-sm" style="background:${col}">${c.user.username[0].toUpperCase()}</div>
+      <div class="ci-info"><div class="ci-name">${esc(c.user.username)}</div><div class="ci-sub">🔒 Verschlüsselt</div></div>
+      <div class="ci-meta"><span class="ci-time">${fmtTime(c.last?.created_at)}</span>${badge}</div>
+    </div>`;}).join('');
+}
+
+/* ─── OPEN CHAT ─── */
+async function openChat(uid){
   const{data:u}=await db.from('dsn_users').select('*').eq('id',uid).single();
   if(!u)return;
-  if(currentPartner?.id!==uid){clearMsgs();lastMsgTs=null;}
   currentPartner=u;
-  currentSharedKey=null;
-  if(u.public_key&&myPrivateKey){try{currentSharedKey=await deriveShared(myPrivateKey,await importPubB64(u.public_key));}catch(e){console.warn(e);}}
-  switchTab('chats');
-  document.getElementById('chat-empty').style.display='none';
-  const cv=document.getElementById('chat-view');cv.style.display='flex';
-  document.getElementById('chat-avatar').textContent=u.username[0].toUpperCase();
-  document.getElementById('chat-name').textContent=u.username.toUpperCase();
+  const col=avColor(u.username);
+  // Header
+  document.getElementById('chat-empty').classList.add('hidden');
+  const cv=document.getElementById('chat-view');cv.classList.remove('hidden');cv.style.display='flex';
+  const cav=document.getElementById('chat-av');cav.style.background=col;cav.textContent=u.username[0].toUpperCase();
+  document.getElementById('chat-name').textContent=u.username;
   document.getElementById('chat-meta').textContent=`${u.real_name} · Klasse ${u.grade}`;
-  document.getElementById('prof-avatar').textContent=u.username[0].toUpperCase();
-  document.getElementById('prof-username').textContent=u.username.toUpperCase();
-  document.getElementById('prof-realname').textContent=u.real_name;
-  document.getElementById('prof-grade').textContent=`Klasse ${u.grade}`;
-  document.getElementById('prof-since').textContent=new Date(u.created_at).toLocaleDateString('de-DE');
-  updateBlockUI();
-  const tbm=await isBlockedBy(u.id);
-  document.getElementById('youre-blocked-banner').style.display=tbm?'block':'none';
-  document.getElementById('input-wrap').style.display=(tbm||iBlocked(u.id))?'none':'flex';
+  // Profile panel data
+  const pav=document.getElementById('prof-av');pav.style.background=col;pav.textContent=u.username[0].toUpperCase();
+  document.getElementById('prof-name').textContent=u.real_name;
+  document.getElementById('prof-user').textContent='@'+u.username;
+  document.getElementById('prof-grade').textContent=u.grade;
+  document.getElementById('prof-since').textContent=new Date(u.created_at).toLocaleDateString('de-DE',{month:'short',year:'2-digit'});
+  // Reset
+  renderedIds.clear();document.getElementById('msgs').innerHTML='';
+  // Block state
+  refreshBlockUI();
+  const tbm=await theyBlockedMe(u.id);
+  document.getElementById('bar-by-them').classList.toggle('hidden',!tbm);
+  if(tbm||iBlocked(u.id))document.getElementById('input-area').classList.add('hidden');
+  else document.getElementById('input-area').classList.remove('hidden');
+  // Load & poll
+  switchTab('chats');
   await db.from('dsn_messages').update({read:true}).eq('from_id',u.id).eq('to_id',me.id);
-  await loadFullHistory();
-  startPoll();
+  await loadMsgs(true);
+  clearInterval(pollTm);pollTm=setInterval(()=>pollMsgs(),2000);
   loadConversations();
 }
 
-/* MESSAGES */
-function clearMsgs(){
-  const w=document.getElementById('messages-wrap');
-  w.innerHTML='';w.dataset.lastDate='';
-}
-
-async function loadFullHistory(){
+/* ─── MESSAGES ─── */
+async function loadMsgs(initial=false){
   if(!currentPartner)return;
-  const{data}=await db.from('dsn_messages').select('*')
+  const{data}=await db.from('dsn_messages')
+    .select('*')
     .or(`and(from_id.eq.${me.id},to_id.eq.${currentPartner.id}),and(from_id.eq.${currentPartner.id},to_id.eq.${me.id})`)
     .order('created_at',{ascending:true});
   const msgs=data||[];
-  clearMsgs();
-  if(!msgs.length){
-    document.getElementById('messages-wrap').innerHTML='<div class="empty-state" style="margin-top:40px;">Noch keine Nachrichten — schreib was!</div>';
-    lastMsgTs=null;return;
+  const newMsgs=msgs.filter(m=>!renderedIds.has(m.id));
+  if(!newMsgs.length)return;
+  const area=document.getElementById('msgs');
+
+  for(let i=0;i<newMsgs.length;i++){
+    const m=newMsgs[i];
+    const idx=msgs.findIndex(x=>x.id===m.id);
+    const prev=msgs[idx-1],next=msgs[idx+1];
+    const isOut=m.from_id===me.id;
+    const THRESH=5*60*1000;
+
+    // Date divider
+    const mDate=new Date(m.created_at).toDateString();
+    const pDate=prev?new Date(prev.created_at).toDateString():null;
+    if(mDate!==pDate){
+      const d=document.createElement('div');d.className='date-sep';
+      d.textContent=new Date(m.created_at).toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});
+      area.appendChild(d);
+    }
+
+    // Grouping
+    const sp=prev&&prev.from_id===m.from_id&&(new Date(m.created_at)-new Date(prev.created_at))<THRESH;
+    const sn=next&&next.from_id===m.from_id&&(new Date(next.created_at)-new Date(m.created_at))<THRESH;
+    let gc='';
+    if(sp&&sn)gc='g-mid';else if(sp)gc='g-bot';else if(sn)gc='g-top';
+
+    // Decrypt
+    let text='🔒';
+    try{
+      if(myPriv&&currentPartner.public_key&&m.content.includes('.')){
+        text=await decryptMsg(myPriv,currentPartner.public_key,m.content);
+      }else{text=m.content;}
+    }catch{text='🔒';}
+
+    const row=document.createElement('div');
+    row.className=`msg-row ${isOut?'out':'in'} ${gc}${initial?'':' is-new'}`;
+    row.dataset.id=m.id;
+
+    // Avatar / spacer
+    if(!isOut){
+      const a=document.createElement('div');a.className='msg-av';
+      a.style.background=avColor(currentPartner.username);a.textContent=currentPartner.username[0].toUpperCase();
+      row.appendChild(a);
+    }else{
+      const s=document.createElement('div');s.className='msg-spacer';row.appendChild(s);
+    }
+
+    // Bubble
+    const b=document.createElement('div');b.className=`bubble ${isOut?'out':'in'}`;
+    const showTime=!sn;
+    const ts=new Date(m.created_at).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    b.innerHTML=esc(text).replace(/\n/g,'<br>')+(showTime?`<span class="bubble-time">${ts}</span>`:'');
+    row.appendChild(b);
+    area.appendChild(row);
+    renderedIds.add(m.id);
   }
-  for(const m of msgs){
-    const txt=currentSharedKey?await decryptMsg(m.content,currentSharedKey):m.content;
-    appendMsg(m,txt,false);
-  }
-  lastMsgTs=msgs[msgs.length-1].created_at;
-  scrollBottom();
+  area.scrollTop=area.scrollHeight;
 }
 
-async function pollNewMsgs(){
+async function pollMsgs(){
+  const prev=renderedIds.size;
+  await loadMsgs(false);
+  if(renderedIds.size>prev){
+    await db.from('dsn_messages').update({read:true}).eq('from_id',currentPartner.id).eq('to_id',me.id);
+    loadConversations();
+  }
+}
+
+/* ─── SEND ─── */
+async function sendMsg(){
   if(!currentPartner)return;
-  // Only fetch messages strictly newer than our last known timestamp
-  const since=lastMsgTs||new Date(0).toISOString();
-  const{data}=await db.from('dsn_messages').select('*')
-    .or(`and(from_id.eq.${me.id},to_id.eq.${currentPartner.id}),and(from_id.eq.${currentPartner.id},to_id.eq.${me.id})`)
-    .gt('created_at',since)
-    .order('created_at',{ascending:true});
-  const msgs=data||[];
-  if(!msgs.length)return;
-  const w=document.getElementById('messages-wrap');
-  const atBottom=w.scrollHeight-w.scrollTop-w.clientHeight<100;
-  const ph=w.querySelector('.empty-state');if(ph)ph.remove();
-  for(const m of msgs){
-    const txt=currentSharedKey?await decryptMsg(m.content,currentSharedKey):m.content;
-    appendMsg(m,txt,true); // animate only new
-  }
-  lastMsgTs=msgs[msgs.length-1].created_at;
-  if(atBottom)scrollBottom();
-  await db.from('dsn_messages').update({read:true}).eq('from_id',currentPartner.id).eq('to_id',me.id);
-  loadConversations();
+  const inp=document.getElementById('msg-inp');const text=inp.value.trim();
+  if(!text||iBlocked(currentPartner.id))return;
+  inp.value='';autoResize(inp);
+  const btn=document.getElementById('send-btn');btn.disabled=true;
+  try{
+    let content=text;
+    if(myPriv&&currentPartner.public_key)content=await encryptMsg(myPriv,currentPartner.public_key,text);
+    const{error}=await db.from('dsn_messages').insert({from_id:me.id,to_id:currentPartner.id,content,read:false});
+    if(error){notify('Senden fehlgeschlagen','danger');inp.value=text;}
+    else{await loadMsgs(false);loadConversations();}
+  }catch{notify('Verschlüsselung fehlgeschlagen','danger');inp.value=text;}
+  finally{btn.disabled=false;inp.focus();}
 }
 
-function appendMsg(m,text,animate){
-  const w=document.getElementById('messages-wrap');
-  const d=new Date(m.created_at);
-  const ds=d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});
-  if(ds!==(w.dataset.lastDate||'')){
-    const lbl=document.createElement('div');lbl.className='msg-date-label';lbl.textContent=ds;
-    w.appendChild(lbl);w.dataset.lastDate=ds;
-  }
-  const out=m.from_id===me.id;
-  const el=document.createElement('div');
-  // Static messages get NO animation class at all — only truly new ones do
-  el.className=`msg ${out?'out':'in'}${animate?' new-msg':''}`;
-  el.innerHTML=`<div class="msg-bubble">${esc(text).replace(/\n/g,'<br>')}<span class="msg-time">${d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</span></div>`;
-  w.appendChild(el);
-}
-
-function scrollBottom(){const w=document.getElementById('messages-wrap');w.scrollTop=w.scrollHeight;}
-function startPoll(){clearInterval(pollTimer);pollTimer=setInterval(()=>{if(currentPartner)pollNewMsgs();},2500);}
-
-/* SEND */
-async function sendMessage(){
-  if(!currentPartner)return;
-  const inp=document.getElementById('msg-input');
-  const txt=inp.value.trim();if(!txt)return;
-  if(iBlocked(currentPartner.id)){showNotif('User ist blockiert','danger');return;}
-  if(await isBlockedBy(currentPartner.id)){showNotif('Du wurdest blockiert','danger');return;}
-  const btn=document.getElementById('send-btn');
-  btn.disabled=true;inp.value='';inp.style.height='auto';
-  const toStore=currentSharedKey?await encryptMsg(txt,currentSharedKey):txt;
-  const{error}=await db.from('dsn_messages').insert({from_id:me.id,to_id:currentPartner.id,content:toStore,read:false});
-  btn.disabled=false;
-  if(error){showNotif('Fehler beim Senden','danger');inp.value=txt;return;}
-  await pollNewMsgs();
-}
-function inputKeydown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}}
+function inputKd(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
 function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
 
-/* TABS */
-function switchTab(n){
-  ['chats','users','blocked'].forEach(t=>{
-    document.getElementById('tab-'+t).classList.toggle('active',t===n);
-    document.getElementById('panel-'+t).classList.toggle('active',t===n);
+/* ─── PROFILE PANEL ─── */
+function toggleProfile(){
+  const pp=document.getElementById('prof-panel');const ib=document.getElementById('info-btn');
+  const open=pp.classList.contains('open');
+  pp.classList.toggle('open',!open);ib.classList.toggle('active',!open);
+}
+
+/* ─── TABS ─── */
+function switchTab(name){
+  ['chats','people','blocked'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===name);
+    document.getElementById('panel-'+t).classList.toggle('active',t===name);
   });
 }
 
-/* MODAL */
-function openModal(title,body,cb){
-  document.getElementById('modal-title').textContent=title;
-  document.getElementById('modal-body').innerHTML=body;
+/* ─── CONFIRM MODAL ─── */
+function openConfirm(title,body,onOk){
+  document.getElementById('conf-title').textContent=title;
+  document.getElementById('conf-body').textContent=body;
+  document.getElementById('conf-ok').onclick=onOk;
   document.getElementById('confirm-modal').classList.add('open');
-  document.getElementById('modal-confirm-btn').onclick=cb;
 }
-function closeModal(){document.getElementById('confirm-modal').classList.remove('open');}
+function closeConfirm(){document.getElementById('confirm-modal').classList.remove('open');}
 
-/* NOTIF */
-function showNotif(msg,type=''){
-  const n=document.createElement('div');n.className=`notif ${type}`;n.textContent=msg;
-  document.body.appendChild(n);setTimeout(()=>n.remove(),3000);
+/* ─── NOTIFICATIONS ─── */
+function notify(msg,type=''){
+  const el=document.createElement('div');
+  el.className=`notif ${type}`;
+  el.innerHTML=`<div class="notif-dot"></div>${esc(msg)}`;
+  document.getElementById('notif-root').appendChild(el);
+  setTimeout(()=>el.remove(),3200);
 }
 
-/* HELPERS */
+/* ─── UTILS ─── */
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function fmtTime(ts){
+  if(!ts)return'';
   const d=new Date(ts),now=new Date(),diff=now-d;
-  if(diff<60000)return'gerade eben';
+  if(diff<60000)return'Jetzt';
   if(diff<3600000)return Math.floor(diff/60000)+'m';
   if(diff<86400000)return d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
   return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
