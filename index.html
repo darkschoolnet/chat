@@ -1,6 +1,4 @@
-rm -f /mnt/user-data/outputs/index.html
-cat > /tmp/build_chat.py << 'PYEOF'
-html = r"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de" data-theme="light">
 <head>
 <meta charset="UTF-8"/>
@@ -147,7 +145,6 @@ input,textarea,select{font-family:inherit}
 .sec-label{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;padding:10px 8px 5px}
 .new-group-btn{margin:8px;padding:9px 14px;background:var(--blue-lt);border:1.5px dashed var(--blue-bd);border-radius:var(--r-sm);color:var(--blue);font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px;width:calc(100% - 16px);transition:background .15s}
 .new-group-btn:hover{background:var(--blue-bd)}
-/* CONV ITEM */
 .ci{display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--r);cursor:pointer;transition:background .12s;position:relative}
 .ci:hover{background:var(--surface2)}
 .ci.active{background:var(--bg);box-shadow:var(--sh-sm)}
@@ -187,7 +184,6 @@ input,textarea,select{font-family:inherit}
 .hib.danger:hover{background:var(--danger-lt);color:var(--danger)}
 .hib.danger.on{background:var(--danger-lt);color:var(--danger)}
 .hib svg{width:17px;height:17px}
-/* MESSAGES */
 .msgs{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column}
 .msgs::-webkit-scrollbar{width:5px}
 .msgs::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
@@ -228,7 +224,6 @@ input,textarea,select{font-family:inherit}
 .block-bar{padding:10px 20px;text-align:center;font-size:13px;font-weight:500;flex-shrink:0}
 .block-bar.by-me{background:var(--danger-lt);color:var(--danger);border-top:1px solid rgba(239,68,68,.2)}
 .block-bar.by-them{background:rgba(245,158,11,.1);color:var(--warn);border-top:1px solid rgba(245,158,11,.2)}
-/* INPUT */
 .input-area{padding:10px 14px 12px;border-top:1px solid var(--border);display:flex;align-items:flex-end;gap:8px;background:var(--bg);flex-shrink:0;transition:background .3s,border-color .3s}
 .input-wrap{flex:1;display:flex;align-items:flex-end;background:var(--surface);border:1.5px solid var(--border);border-radius:28px;padding:4px 4px 4px 14px;transition:border-color .15s,box-shadow .15s,background .3s}
 .input-wrap:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.08)}
@@ -249,7 +244,6 @@ input,textarea,select{font-family:inherit}
 .up-name{flex:1;font-size:13px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .up-cancel{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:18px;transition:background .15s;flex-shrink:0}
 .up-cancel:hover{background:var(--surface2);color:var(--danger)}
-/* PROFILE PANEL */
 .prof-panel{width:272px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;transform:translateX(16px);opacity:0;transition:transform .28s cubic-bezier(.16,1,.3,1),opacity .28s,background .3s,border-color .3s;pointer-events:none}
 .prof-panel.open{transform:translateX(0);opacity:1;pointer-events:all}
 .prof-panel::-webkit-scrollbar{width:3px}
@@ -257,8 +251,6 @@ input,textarea,select{font-family:inherit}
 .prof-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
 .prof-hdr span{font-size:13px;font-weight:600;color:var(--text2)}
 .prof-body{padding:24px 18px;display:flex;flex-direction:column;gap:20px}
-.prof-av-lg{width:66px;height:66px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;overflow:hidden;margin:0 auto}
-.prof-av-lg img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .prof-name{text-align:center;font-size:18px;font-weight:800;letter-spacing:-.5px;color:var(--text);transition:color .3s}
 .prof-user{text-align:center;font-size:13px;color:var(--text3);margin-top:2px}
 .prof-online-status{text-align:center;font-size:12px;color:var(--online);font-weight:600;margin-top:2px}
@@ -282,7 +274,6 @@ input,textarea,select{font-family:inherit}
 .grp-user-row{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;transition:background .1s}
 .grp-user-row:hover{background:var(--surface2)}
 .grp-user-row.selected{background:var(--blue-lt)}
-/* AVATAR PICKER */
 .avatar-picker-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:8px}
 .avatar-preview{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;color:#fff;overflow:hidden;cursor:pointer;border:3px solid var(--blue-bd);transition:border-color .15s;position:relative}
 .avatar-preview:hover{border-color:var(--blue)}
@@ -290,13 +281,11 @@ input,textarea,select{font-family:inherit}
 .avatar-preview-overlay{position:absolute;inset:0;background:rgba(0,0,0,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;font-size:20px}
 .avatar-preview:hover .avatar-preview-overlay{opacity:1}
 .avatar-hint{font-size:12px;color:var(--text3);text-align:center}
-/* LIGHTBOX */
 #lightbox{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 #lightbox.open{opacity:1;pointer-events:all}
 #lightbox img,#lightbox video{max-width:90vw;max-height:90vh;border-radius:var(--r-lg);box-shadow:var(--sh-xl)}
 .lb-close{position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.1);color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;transition:background .15s}
 .lb-close:hover{background:rgba(255,255,255,.2)}
-/* NOTIFS */
 #notif-root{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
 .notif{background:var(--text);color:var(--bg);border-radius:var(--r);padding:11px 16px;font-size:13px;font-weight:500;box-shadow:var(--sh-lg);display:flex;align-items:center;gap:8px;animation:notifIn .28s cubic-bezier(.16,1,.3,1) both;max-width:280px}
 [data-theme="dark"] .notif{color:#fff}
@@ -313,6 +302,7 @@ input,textarea,select{font-family:inherit}
 </style>
 </head>
 <body>
+
 <!-- LANDING -->
 <div id="landing">
   <nav class="nav">
@@ -335,24 +325,25 @@ input,textarea,select{font-family:inherit}
     <p class="feat-eyebrow">Features</p>
     <h2 class="feat-h2">Alles was du brauchst.</h2>
     <div class="feat-grid">
-      <div class="feat-card"><div class="feat-icon">🔒</div><h3 class="feat-h3">Ende-zu-Ende verschlüsselt</h3><p class="feat-p">Nachrichten werden vor dem Absenden verschlüsselt. Nur du und dein Gesprächspartner können sie lesen — kein Server, kein Admin.</p></div>
+      <div class="feat-card"><div class="feat-icon">🔒</div><h3 class="feat-h3">Ende-zu-Ende verschlüsselt</h3><p class="feat-p">Nachrichten werden vor dem Absenden verschlüsselt. Nur du und dein Gesprächspartner können sie lesen.</p></div>
       <div class="feat-card"><div class="feat-icon">👥</div><h3 class="feat-h3">Gruppenchats</h3><p class="feat-p">Erstelle Gruppen wie bei WhatsApp. Als Admin kannst du Mitglieder hinzufügen oder entfernen.</p></div>
       <div class="feat-card"><div class="feat-icon">🟢</div><h3 class="feat-h3">Online-Status</h3><p class="feat-p">Sieh wer gerade aktiv ist — mit Echtzeit-Online-Anzeige neben dem Profilbild.</p></div>
       <div class="feat-card"><div class="feat-icon">🖼️</div><h3 class="feat-h3">Profilbilder &amp; Medien</h3><p class="feat-p">Lade dein eigenes Profilbild hoch. Teile Bilder und Videos direkt im Chat.</p></div>
       <div class="feat-card"><div class="feat-icon">🛡️</div><h3 class="feat-h3">Blockieren &amp; Löschen</h3><p class="feat-p">Volle Kontrolle. Blockiere User und lösche deine eigenen Nachrichten jederzeit.</p></div>
-      <div class="feat-card"><div class="feat-icon">🌙</div><h3 class="feat-h3">Dark &amp; Light Mode</h3><p class="feat-p">Wähle das Design das zu dir passt. Dark Mode mit tiefem Dunkelblau — Light Mode für den Schulalltag.</p></div>
+      <div class="feat-card"><div class="feat-icon">🌙</div><h3 class="feat-h3">Dark &amp; Light Mode</h3><p class="feat-p">Wähle das Design das zu dir passt.</p></div>
     </div>
   </section>
   <section class="reg-band">
     <h2>Noch kein Account?</h2>
-    <p>Registriere dich zuerst im Dark School Net Account Management — danach kannst du dich hier einloggen.</p>
-    <a class="reg-btn" href="https://darkschoolnet.github.io/main" target="_blank">Zum Account Management →</a>
+    <p>Registriere dich im Dark School Net Hub — danach kannst du dich hier einloggen.</p>
+    <a class="reg-btn" href="https://darkschoolnet.github.io/main" target="_blank">Zum Hub →</a>
   </section>
   <footer class="footer">
-    <p>© Dark School Net — Nur für Schulinterne</p>
+    <p>© Dark School Net</p>
     <p>Ende-zu-Ende verschlüsselt · Kein Tracking</p>
   </footer>
 </div>
+
 <!-- LOGIN MODAL -->
 <div class="modal-overlay" id="login-modal">
   <div class="login-card">
@@ -361,14 +352,15 @@ input,textarea,select{font-family:inherit}
       <div class="login-logo-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
       <div class="login-logo-text">Dark School Net</div>
     </div>
-    <div class="login-h2" id="login-title">Willkommen zurück</div>
-    <div class="login-sub" id="login-subtitle">Logg dich mit deinem Account ein.</div>
+    <div class="login-h2">Willkommen zurück</div>
+    <div class="login-sub">Logg dich mit deinem DSN-Account ein.</div>
     <div class="field"><label>Benutzername</label><input type="text" id="login-user" placeholder="z. B. shadow_felix" autocomplete="off"/></div>
     <div class="field"><label>Passwort</label><input type="password" id="login-pass" placeholder="Dein Passwort"/></div>
     <button class="submit-btn" id="login-btn" onclick="doLogin()">Einloggen</button>
     <div class="field-error" id="login-err"></div>
   </div>
 </div>
+
 <!-- CONFIRM MODAL -->
 <div class="modal-overlay" id="confirm-modal">
   <div class="confirm-card">
@@ -380,6 +372,7 @@ input,textarea,select{font-family:inherit}
     </div>
   </div>
 </div>
+
 <!-- GROUP MODAL -->
 <div class="modal-overlay" id="group-modal">
   <div class="modal-card">
@@ -396,6 +389,7 @@ input,textarea,select{font-family:inherit}
     <div class="field-error" id="grp-err"></div>
   </div>
 </div>
+
 <!-- ADD MEMBER MODAL -->
 <div class="modal-overlay" id="addmember-modal">
   <div class="modal-card">
@@ -406,6 +400,7 @@ input,textarea,select{font-family:inherit}
     <div class="field-error" id="addm-err"></div>
   </div>
 </div>
+
 <!-- PROFILE EDIT MODAL -->
 <div class="modal-overlay" id="profileedit-modal">
   <div class="modal-card" style="width:360px">
@@ -423,11 +418,13 @@ input,textarea,select{font-family:inherit}
     <div class="field-error" id="profile-err"></div>
   </div>
 </div>
+
 <!-- LIGHTBOX -->
 <div id="lightbox">
   <button class="lb-close" onclick="closeLightbox()">✕</button>
   <div id="lb-content"></div>
 </div>
+
 <!-- APP -->
 <div id="app">
   <aside class="sidebar">
@@ -454,7 +451,7 @@ input,textarea,select{font-family:inherit}
     <div class="tab-panel" id="panel-people">
       <div class="sb-search"><div class="search-row">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="search-inp" placeholder="Suchen…" oninput="filterPeople()"/>
+        <input type="text" id="search-inp" placeholder="Suchen…" oninput="debounce(filterPeople,200)()"/>
       </div></div>
       <div class="list-scroll" id="people-list"><div class="empty-list"><div class="spinner"></div></div></div>
     </div>
@@ -483,7 +480,7 @@ input,textarea,select{font-family:inherit}
         </div>
       </div>
       <div class="msgs" id="msgs"></div>
-      <div class="e2e-bar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Ende-zu-Ende verschlüsselt</div>
+      <div class="e2e-bar" id="e2e-bar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Ende-zu-Ende verschlüsselt</div>
       <div id="bar-by-me" class="block-bar by-me hidden">Du hast diesen User blockiert.</div>
       <div id="bar-by-them" class="block-bar by-them hidden">Dieser User hat dich blockiert.</div>
       <div id="upload-preview" class="hidden"></div>
@@ -509,25 +506,48 @@ input,textarea,select{font-family:inherit}
   </aside>
 </div>
 <div id="notif-root"></div>
-<script>
-/* ══ SUPABASE ══ */
-const SUPA_URL='https://sigjwzivusuzmhvixtbm.supabase.co';
-const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpZ2p3eml2dXN1em1odml4dGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNTI3MDksImV4cCI6MjA4ODcyODcwOX0.j0yB-NYM5HOkfKVBz24rWMBQNF8w-uEFjX55UGeD30E';
-const db=supabase.createClient(SUPA_URL,SUPA_KEY);
-const MEDIA_BUCKET='dsn-media';
-const AVATAR_BUCKET='dsn-avatars';
 
-/* ══ CRYPTO ══ */
-async function hashPw(pw,saltHex){
+<script>
+/* ══════════════════════════════════════════════════
+   SUPABASE — identische Config wie im Hub
+══════════════════════════════════════════════════ */
+const SUPA_URL = 'https://sigjwzivusuzmhvixtbm.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpZ2p3eml2dXN1em1odml4dGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNTI3MDksImV4cCI6MjA4ODcyODcwOX0.j0yB-NYM5HOkfKVBz24rWMBQNF8w-uEFjX55UGeD30E';
+const db = supabase.createClient(SUPA_URL, SUPA_KEY);
+const MEDIA_BUCKET   = 'dsn-media';
+const AVATAR_BUCKET  = 'dsn-avatars';
+
+/* ══════════════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════════════ */
+function esc(s){
+  return String(s==null?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function fmtTime(ts){
+  if(!ts)return'';
+  const d=new Date(ts),now=new Date(),diff=now-d;
+  if(diff<86400000)return d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+  return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
+}
+function debounce(fn,ms){let t;return function(...a){clearTimeout(t);t=setTimeout(()=>fn.apply(this,a),ms);};}
+
+/* ══════════════════════════════════════════════════
+   CRYPTO — PBKDF2 (identisch zum Hub)
+══════════════════════════════════════════════════ */
+async function hashPw(pw, saltHex){
   const enc=new TextEncoder();
   const salt=new Uint8Array(saltHex.match(/.{2}/g).map(h=>parseInt(h,16)));
   const key=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveBits']);
   const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations:200000},key,256);
   return Array.from(new Uint8Array(bits)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-const verifyPw=async(pw,s,h)=>(await hashPw(pw,s))===h;
+
+/* E2E (ECDH + AES-GCM) für Nachrichten */
 async function aesKeyFromPw(pw,saltHex){
-  const enc=new TextEncoder(),salt=new Uint8Array(saltHex.match(/.{2}/g).map(h=>parseInt(h,16)));
+  const enc=new TextEncoder();
+  const salt=new Uint8Array(saltHex.match(/.{2}/g).map(h=>parseInt(h,16)));
   const mat=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveKey']);
   return crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt,iterations:100000},mat,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
 }
@@ -549,143 +569,206 @@ async function ecdhAES(priv,pubB64){return crypto.subtle.deriveKey({name:'ECDH',
 async function encMsg(priv,theirPub,text){return aesEnc(await ecdhAES(priv,theirPub),text);}
 async function decMsg(priv,theirPub,ct){return aesDec(await ecdhAES(priv,theirPub),ct);}
 
-/* ══ SESSION ══
-   FIX: password is stored in sessionStorage so E2E keys can be
-   restored on page refresh without forcing a re-login.
-   sessionStorage is cleared when the tab closes — safe for school use. */
-const saveS=u=>sessionStorage.setItem('dsn_s',JSON.stringify(u));
-const savePw=pw=>{if(pw)sessionStorage.setItem('dsn_pw',pw);};
-const getS=()=>{try{return JSON.parse(sessionStorage.getItem('dsn_s'));}catch{return null;}};
-const getPw=()=>sessionStorage.getItem('dsn_pw')||'';
-const clearS=()=>{sessionStorage.removeItem('dsn_s');sessionStorage.removeItem('dsn_pw');};
+/* ══════════════════════════════════════════════════
+   SESSION — liest auch den geteilten Hub-Session-Key
+══════════════════════════════════════════════════ */
+const saveS  = u => sessionStorage.setItem('dsn_chat_s', JSON.stringify(u));
+const savePw = pw => { if(pw) sessionStorage.setItem('dsn_chat_pw', pw); };
+const getS   = () => { try{ return JSON.parse(sessionStorage.getItem('dsn_chat_s')); }catch{return null;} };
+const getPw  = () => sessionStorage.getItem('dsn_chat_pw') || null;
+const clearS = () => { sessionStorage.removeItem('dsn_chat_s'); sessionStorage.removeItem('dsn_chat_pw'); };
 
-/* ══ THEME ══ */
+/* Shared Session vom Hub lesen (gleiche Origin) */
+function getHubSession(){
+  try{ return JSON.parse(localStorage.getItem('dsn_shared_session')); }catch{return null;}
+}
+
+/* ══════════════════════════════════════════════════
+   THEME
+══════════════════════════════════════════════════ */
+function applyThemeIcon(){
+  const t=document.documentElement.getAttribute('data-theme');
+  const icon=t==='dark'?'☀️':'🌙';
+  const tb=document.getElementById('theme-btn');
+  const ab=document.getElementById('app-theme-btn');
+  if(tb)tb.textContent=icon;
+  if(ab)ab.textContent=icon;
+}
 function toggleTheme(){
   const dark=document.documentElement.getAttribute('data-theme')==='dark';
-  const next=dark?'light':'dark';
-  document.documentElement.setAttribute('data-theme',next);
-  localStorage.setItem('dsn_theme',next);
-  const icon=next==='dark'?'☀️':'🌙';
-  document.getElementById('theme-btn').textContent=icon;
-  const ab=document.getElementById('app-theme-btn');if(ab)ab.textContent=icon;
+  document.documentElement.setAttribute('data-theme',dark?'light':'dark');
+  localStorage.setItem('dsn_theme',dark?'light':'dark');
+  applyThemeIcon();
 }
 (function(){
   const t=localStorage.getItem('dsn_theme')||'light';
   document.documentElement.setAttribute('data-theme',t);
-  window.addEventListener('DOMContentLoaded',()=>{
-    const icon=t==='dark'?'☀️':'🌙';
-    document.getElementById('theme-btn').textContent=icon;
-  });
+  window.addEventListener('DOMContentLoaded',applyThemeIcon);
 })();
 
-/* ══ STATE ══ */
-let me=null,myPriv=null;
+/* ══════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════ */
+let me=null, myPriv=null;
 let currentChat=null;
-let allUsers=[],blockedList=[],renderedIds=new Set();
-let pollTm=null,convTm=null,onlineTm=null;
-let pendingFile=null,pendingAvatar=null;
+let allUsers=[], blockedList=[], renderedIds=new Set();
+let pollTm=null, convTm=null, onlineTm=null;
+let pendingFile=null, pendingAvatar=null;
 let onlineUsers=new Set();
 let grpSelectedIds=new Set();
 
-/* ══ AVATAR ══ */
+/* ══════════════════════════════════════════════════
+   AVATAR HELPERS
+══════════════════════════════════════════════════ */
 function avCol(s=''){
   const p=['#2563eb','#7c3aed','#db2777','#ea580c','#16a34a','#0891b2','#be123c','#9333ea'];
-  let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))&0x7fffffff;return p[h%p.length];
+  let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))&0x7fffffff;
+  return p[h%p.length];
 }
-/* FIX: avHtml is defensive — handles null/undefined users gracefully */
+function makeAvEl(user,extraClass=''){
+  const div=document.createElement('div');
+  div.className='av '+extraClass;
+  div.style.background=user?avCol(user.username||''):'#64748b';
+  if(user&&user.avatar_url){
+    const img=document.createElement('img');img.src=user.avatar_url;img.alt='';
+    img.onerror=()=>{img.remove();div.textContent=(user.username||'?')[0].toUpperCase();};
+    div.appendChild(img);
+  }else{div.textContent=user?(user.username||'?')[0].toUpperCase():'?';}
+  return div;
+}
 function avHtml(user,cls=''){
   if(!user)return`<div class="av ${cls}" style="background:#64748b">?</div>`;
-  const col=avCol(user.username||'');
-  const initial=(user.username||'?')[0].toUpperCase();
-  if(user.avatar_url){
-    return`<div class="av ${cls}" style="background:${col}"><img src="${esc(user.avatar_url)}" alt="" onerror="this.parentElement.textContent='${initial}'"/></div>`;
-  }
-  return`<div class="av ${cls}" style="background:${col}">${initial}</div>`;
+  const col=avCol(user.username||''),init=(user.username||'?')[0].toUpperCase();
+  if(user.avatar_url)return`<div class="av ${cls}" style="background:${col}"><img src="${esc(user.avatar_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.style.display='none'"/></div>`;
+  return`<div class="av ${cls}" style="background:${col}">${esc(init)}</div>`;
 }
-function groupAvHtml(cls=''){
-  return`<div class="av ${cls}" style="background:#7c3aed">👥</div>`;
-}
+function groupAvHtml(cls=''){return`<div class="av ${cls}" style="background:#7c3aed">👥</div>`;}
 
-/* ══ INIT ══ */
+/* ══════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded',()=>{
-  const ab=document.getElementById('app-theme-btn');
-  const t=localStorage.getItem('dsn_theme')||'light';
-  if(ab)ab.textContent=t==='dark'?'☀️':'🌙';
-  /* FIX: restore session with password — no forced re-login */
-  const s=getS();
-  const pw=getPw();
-  if(s){
-    me=s;
-    enterApp(pw||null);
+  applyThemeIcon();
+  // Erst eigene Chat-Session prüfen
+  const s=getS(), pw=getPw();
+  if(s&&pw){ me=s; enterApp(pw); return; }
+  // Dann Hub-Session prüfen (gleiche Origin = gleiches localStorage)
+  // Hub speichert kein PW — User muss im Chat einloggen, aber wir können Username vorausfüllen
+  const hub=getHubSession();
+  if(hub&&hub.username){
+    document.getElementById('login-user').value=hub.username;
   }
   document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
   document.getElementById('login-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('login-pass').focus();});
 });
 
-/* ══ LOGIN ══ */
+/* ══════════════════════════════════════════════════
+   LOGIN — nutzt dsn_get_salt + dsn_login RPCs (wie Hub)
+══════════════════════════════════════════════════ */
 function openLogin(){
-  document.getElementById('login-title').textContent='Willkommen zurück';
-  document.getElementById('login-subtitle').textContent='Logg dich mit deinem Account ein.';
   document.getElementById('login-modal').classList.add('open');
-  setTimeout(()=>document.getElementById('login-user').focus(),60);
+  setTimeout(()=>{
+    const u=document.getElementById('login-user');
+    if(u.value)document.getElementById('login-pass').focus();
+    else u.focus();
+  },60);
 }
 function closeLogin(){document.getElementById('login-modal').classList.remove('open');}
 
 async function doLogin(){
-  const user=document.getElementById('login-user').value.trim().toLowerCase();
+  const username=document.getElementById('login-user').value.trim().toLowerCase();
   const pw=document.getElementById('login-pass').value;
-  const errEl=document.getElementById('login-err'),btn=document.getElementById('login-btn');
+  const errEl=document.getElementById('login-err');
+  const btn=document.getElementById('login-btn');
   errEl.textContent='';
-  if(!user||!pw){errEl.textContent='Bitte alle Felder ausfüllen.';return;}
-  btn.disabled=true;btn.textContent='Einloggen…';
+  if(!username||!pw){errEl.textContent='Bitte alle Felder ausfüllen.';return;}
+  btn.disabled=true;btn.textContent='Suche Account…';
   try{
-    /* FIX: explicitly select all fields needed for E2E */
-    const{data,error}=await db.from('dsn_users').select('id,username,real_name,grade,salt,password_hash,public_key,encrypted_private_key,avatar_url,created_at').eq('username',user).single();
-    if(error||!data){errEl.textContent='Benutzername nicht gefunden.';return;}
-    if(!(await verifyPw(pw,data.salt,data.password_hash))){errEl.textContent='Falsches Passwort.';return;}
-    me=data;
+    /* SCHRITT 1: Salt holen — identisch zum Hub */
+    const{data:salt,error:e1}=await db.rpc('dsn_get_salt',{p_username:username});
+    if(e1){
+      console.error('dsn_get_salt Fehler:',e1);
+      errEl.textContent='Verbindungsfehler: '+(e1.message||e1.code||JSON.stringify(e1));
+      return;
+    }
+    if(!salt){errEl.textContent='Benutzername nicht gefunden.';return;}
+
+    btn.textContent='Prüfe Passwort…';
+    /* SCHRITT 2: Hash berechnen */
+    const hash=await hashPw(pw,salt);
+
+    /* SCHRITT 3: Login RPC — identisch zum Hub */
+    const{data:user,error:e2}=await db.rpc('dsn_login',{p_username:username,p_password_hash:hash});
+    if(e2){
+      console.error('dsn_login Fehler:',e2);
+      errEl.textContent='Login-Fehler: '+(e2.message||e2.code||JSON.stringify(e2));
+      return;
+    }
+    if(!user){errEl.textContent='Falsches Passwort.';return;}
+
+    /* SCHRITT 4: Vollständige User-Daten für E2E laden */
+    btn.textContent='Lade Profil…';
+    const{data:fullUser,error:e3}=await db
+      .from('dsn_users')
+      .select('id,username,real_name,grade,salt,public_key,encrypted_private_key,avatar_url,created_at')
+      .eq('id',user.id)
+      .maybeSingle();
+
+    const finalUser=fullUser||{...user,salt};
+    me=finalUser;
     saveS(me);
-    savePw(pw); /* FIX: save password for session restore */
+    savePw(pw);
     closeLogin();
     await enterApp(pw);
-  }catch(e){console.error(e);errEl.textContent='Verbindungsfehler.';}
-  finally{btn.disabled=false;btn.textContent='Einloggen';}
+  }catch(e){
+    console.error('Login Exception:',e);
+    errEl.textContent='Fehler: '+(e.message||String(e));
+  }finally{
+    btn.disabled=false;btn.textContent='Einloggen';
+  }
 }
 
+/* ══════════════════════════════════════════════════
+   ENTER APP
+══════════════════════════════════════════════════ */
 async function enterApp(pw){
-  /* FIX: setup E2E regardless of whether pw is null (graceful degradation) */
+  clearInterval(pollTm);clearInterval(convTm);clearInterval(onlineTm);
   await setupE2E(pw);
   document.getElementById('landing').classList.add('fade-out');
   setTimeout(()=>document.getElementById('landing').style.display='none',400);
   document.getElementById('app').classList.add('visible');
   renderMeAvatar();
   document.getElementById('me-name').textContent=me.username;
-  const t=localStorage.getItem('dsn_theme')||'light';
-  const ab=document.getElementById('app-theme-btn');if(ab)ab.textContent=t==='dark'?'☀️':'🌙';
-  /* FIX: run these independently so one failure doesn't block others */
+  applyThemeIcon();
   await loadBlockedList().catch(e=>console.error('loadBlockedList:',e));
   await loadAllUsers().catch(e=>console.error('loadAllUsers:',e));
   await loadConversations().catch(e=>console.error('loadConversations:',e));
-  clearInterval(convTm);
   convTm=setInterval(()=>loadConversations().catch(()=>{}),5000);
-  /* Online status — fully optional, non-blocking */
   heartbeat().catch(()=>{});
   loadOnlineUsers().catch(()=>{});
-  clearInterval(onlineTm);
   onlineTm=setInterval(()=>{heartbeat().catch(()=>{});loadOnlineUsers().catch(()=>{});},15000);
 }
 
 function renderMeAvatar(){
   const av=document.getElementById('me-av');
-  av.style.background=avCol(me.username);
-  if(me.avatar_url){av.innerHTML=`<img src="${esc(me.avatar_url)}" alt="" onerror="this.parentElement.textContent='${me.username[0].toUpperCase()}'"/>`;}
-  else{av.textContent=me.username[0].toUpperCase();}
+  av.innerHTML='';av.style.background=avCol(me.username);
+  if(me.avatar_url){
+    const img=document.createElement('img');img.src=me.avatar_url;img.alt='';
+    img.onerror=()=>{img.remove();av.textContent=me.username[0].toUpperCase();};
+    av.appendChild(img);
+  }else{av.textContent=me.username[0].toUpperCase();}
 }
 
+/* ══════════════════════════════════════════════════
+   LOGOUT
+══════════════════════════════════════════════════ */
 async function doLogout(){
   clearInterval(pollTm);clearInterval(convTm);clearInterval(onlineTm);
+  pollTm=null;convTm=null;onlineTm=null;
   try{await db.from('dsn_online').delete().eq('user_id',me.id);}catch{}
-  clearS();me=null;myPriv=null;currentChat=null;renderedIds.clear();pendingFile=null;onlineUsers.clear();
+  clearS();
+  me=null;myPriv=null;currentChat=null;
+  renderedIds.clear();pendingFile=null;onlineUsers.clear();
   document.getElementById('app').classList.remove('visible');
   document.getElementById('chat-view').classList.add('hidden');
   document.getElementById('chat-empty').classList.remove('hidden');
@@ -694,15 +777,16 @@ async function doLogout(){
   setTimeout(()=>document.getElementById('landing').classList.remove('fade-out'),10);
 }
 
-/* ══ E2E KEYS ══
-   FIX: re-fetch user from DB to get latest keys.
-   FIX: if pw is null (session restored without password), skip key setup gracefully.
-   Messages will show 🔒 but the app still works. */
+/* ══════════════════════════════════════════════════
+   E2E SETUP
+══════════════════════════════════════════════════ */
 async function setupE2E(pw){
-  if(!pw){console.warn('E2E: no password available — messages will show as 🔒');return;}
+  if(!pw){console.warn('E2E: kein PW');return;}
   try{
-    const{data:fresh}=await db.from('dsn_users').select('id,public_key,encrypted_private_key,salt').eq('id',me.id).single();
-    if(fresh){Object.assign(me,{public_key:fresh.public_key,encrypted_private_key:fresh.encrypted_private_key,salt:fresh.salt});saveS(me);}
+    const{data:fresh}=await db.from('dsn_users')
+      .select('id,public_key,encrypted_private_key,salt')
+      .eq('id',me.id).maybeSingle();
+    if(fresh)Object.assign(me,fresh);
     if(me.encrypted_private_key&&me.public_key){
       const aes=await aesKeyFromPw(pw,me.salt);
       const jwkStr=await aesDec(aes,me.encrypted_private_key);
@@ -715,15 +799,15 @@ async function setupE2E(pw){
       await db.from('dsn_users').update({public_key:pubB64,encrypted_private_key:encPriv}).eq('id',me.id);
       me.public_key=pubB64;me.encrypted_private_key=encPriv;saveS(me);
     }
-  }catch(e){console.error('E2E setup failed:',e);}
+  }catch(e){console.error('E2E setup:',e);}
 }
 
-/* ══ ONLINE STATUS — fully optional ══ */
-async function heartbeat(){
-  if(!me)return;
-  await db.from('dsn_online').upsert({user_id:me.id,last_seen:new Date().toISOString()},{onConflict:'user_id'});
-}
+/* ══════════════════════════════════════════════════
+   ONLINE
+══════════════════════════════════════════════════ */
+async function heartbeat(){if(!me)return;await db.from('dsn_online').upsert({user_id:me.id,last_seen:new Date().toISOString()},{onConflict:'user_id'});}
 async function loadOnlineUsers(){
+  if(!me)return;
   const cutoff=new Date(Date.now()-30000).toISOString();
   const{data}=await db.from('dsn_online').select('user_id').gte('last_seen',cutoff);
   onlineUsers=new Set((data||[]).map(r=>r.user_id));
@@ -732,7 +816,8 @@ async function loadOnlineUsers(){
 function updateOnlineUI(){
   if(currentChat?.type==='dm'&&currentChat.partner){
     const on=onlineUsers.has(currentChat.partner.id);
-    const dot=document.getElementById('chat-online-dot');if(dot)dot.classList.toggle('visible',on);
+    const dot=document.getElementById('chat-online-dot');
+    if(dot)dot.classList.toggle('visible',on);
     const meta=document.getElementById('chat-meta');
     if(meta){
       const base=`${currentChat.partner.real_name||''} · Klasse ${currentChat.partner.grade||'?'}`;
@@ -741,8 +826,9 @@ function updateOnlineUI(){
   }
 }
 
-/* ══ FILE UPLOAD ══
-   FIX: detailed error messages, proper bucket check */
+/* ══════════════════════════════════════════════════
+   FILE UPLOAD
+══════════════════════════════════════════════════ */
 function handleFile(inp){
   const file=inp.files[0];if(!file)return;
   const isVideo=file.type.startsWith('video/');
@@ -750,37 +836,41 @@ function handleFile(inp){
   pendingFile={file,localUrl,isVideo};
   const prev=document.getElementById('upload-preview');
   prev.classList.remove('hidden');
-  if(isVideo){prev.innerHTML=`<div class="up-thumb-vid">🎬</div><span class="up-name">${esc(file.name)}</span><button class="up-cancel" onclick="cancelUpload()">✕</button>`;}
-  else{prev.innerHTML=`<img class="up-thumb" src="${localUrl}"/><span class="up-name">${esc(file.name)}</span><button class="up-cancel" onclick="cancelUpload()">✕</button>`;}
+  if(isVideo){
+    prev.innerHTML=`<div class="up-thumb-vid">🎬</div><span class="up-name">${esc(file.name)}</span><button class="up-cancel" onclick="cancelUpload()">✕</button>`;
+  }else{
+    prev.innerHTML=`<img class="up-thumb" src="${esc(localUrl)}"/><span class="up-name">${esc(file.name)}</span><button class="up-cancel" onclick="cancelUpload()">✕</button>`;
+  }
   inp.value='';
 }
 function cancelUpload(){
+  if(pendingFile?.localUrl)URL.revokeObjectURL(pendingFile.localUrl);
   pendingFile=null;
-  const p=document.getElementById('upload-preview');p.classList.add('hidden');p.innerHTML='';
+  const p=document.getElementById('upload-preview');
+  p.classList.add('hidden');p.innerHTML='';
 }
 async function uploadFile(file,bucket){
   const ext=(file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'');
   const path=`${me.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
   const{data,error}=await db.storage.from(bucket).upload(path,file,{contentType:file.type,upsert:true});
-  if(error){
-    /* FIX: surface meaningful error to user */
-    const msg=error.message||String(error);
-    if(msg.includes('Bucket not found')||msg.includes('bucket')){
-      throw new Error(`Storage-Bucket "${bucket}" existiert nicht. Bitte im Supabase-Dashboard anlegen.`);
-    }
-    throw new Error('Upload fehlgeschlagen: '+msg);
-  }
+  if(error)throw new Error('Upload fehlgeschlagen: '+error.message);
   const{data:ud}=db.storage.from(bucket).getPublicUrl(data.path);
   return ud.publicUrl;
 }
 
-/* ══ AVATAR UPLOAD ══ */
+/* ══════════════════════════════════════════════════
+   AVATAR
+══════════════════════════════════════════════════ */
 function handleAvatarFile(inp){
   const file=inp.files[0];if(!file)return;
+  if(pendingAvatar?.localUrl)URL.revokeObjectURL(pendingAvatar.localUrl);
   pendingAvatar={file,localUrl:URL.createObjectURL(file)};
   const prev=document.getElementById('edit-av-preview');
-  prev.innerHTML=`<img src="${pendingAvatar.localUrl}" alt=""/><div class="avatar-preview-overlay">📷</div>`;
-  inp.value='';
+  prev.innerHTML='';
+  const img=document.createElement('img');img.src=pendingAvatar.localUrl;
+  img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%';
+  const ov=document.createElement('div');ov.className='avatar-preview-overlay';ov.textContent='📷';
+  prev.appendChild(img);prev.appendChild(ov);inp.value='';
 }
 async function saveProfile(){
   if(!pendingAvatar){closeProfileEdit();return;}
@@ -791,26 +881,34 @@ async function saveProfile(){
     const url=await uploadFile(pendingAvatar.file,AVATAR_BUCKET);
     await db.from('dsn_users').update({avatar_url:url}).eq('id',me.id);
     me.avatar_url=url;saveS(me);renderMeAvatar();
-    notify('Profilbild gespeichert','success');pendingAvatar=null;closeProfileEdit();
+    notify('Profilbild gespeichert','success');
+    if(pendingAvatar?.localUrl)URL.revokeObjectURL(pendingAvatar.localUrl);
+    pendingAvatar=null;closeProfileEdit();
   }catch(e){errEl.textContent=e.message;}
   finally{btn.disabled=false;btn.textContent='Speichern';}
 }
 function openProfileEdit(){
   const prev=document.getElementById('edit-av-preview');
-  prev.style.background=avCol(me.username);
-  prev.innerHTML=me.avatar_url
-    ?`<img src="${esc(me.avatar_url)}" alt=""/><div class="avatar-preview-overlay">📷</div>`
-    :`<span style="font-size:32px;font-weight:700">${me.username[0].toUpperCase()}</span><div class="avatar-preview-overlay">📷</div>`;
-  pendingAvatar=null;document.getElementById('profile-err').textContent='';
+  prev.innerHTML='';prev.style.background=avCol(me.username);
+  if(me.avatar_url){
+    const img=document.createElement('img');img.src=me.avatar_url;
+    img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%';
+    img.onerror=()=>{img.remove();prev.textContent=me.username[0].toUpperCase();};
+    prev.appendChild(img);
+  }else{prev.textContent=me.username[0].toUpperCase();}
+  const ov=document.createElement('div');ov.className='avatar-preview-overlay';ov.textContent='📷';
+  prev.appendChild(ov);pendingAvatar=null;
+  document.getElementById('profile-err').textContent='';
   document.getElementById('profileedit-modal').classList.add('open');
 }
 function closeProfileEdit(){document.getElementById('profileedit-modal').classList.remove('open');}
 
-/* ══ BLOCKED LIST ══ */
+/* ══════════════════════════════════════════════════
+   BLOCKED
+══════════════════════════════════════════════════ */
 async function loadBlockedList(){
   const{data}=await db.from('dsn_blocked').select('*').eq('blocker_id',me.id);
-  blockedList=data||[];
-  renderBlockedTab().catch(()=>{});
+  blockedList=data||[];renderBlockedTab().catch(()=>{});
 }
 const isBlocked=id=>blockedList.some(b=>b.blocked_id===id);
 async function theyBlockedMe(uid){
@@ -824,12 +922,12 @@ async function renderBlockedTab(){
   const map={};(users||[]).forEach(u=>map[u.id]=u);
   el.innerHTML=`<div class="sec-label">${blockedList.length} blockiert</div>`+
     blockedList.map(b=>{const u=map[b.blocked_id]||{username:'?'};
-      return`<div class="ci" onclick="openDM('${b.blocked_id}')">${avHtml(u,'av-sm')}<div class="ci-info"><div class="ci-name">${esc(u.username||'?')}</div><div class="ci-preview">Klasse ${u.grade||'?'}</div></div></div>`;}).join('');
+      return`<div class="ci" onclick="openDM('${esc(b.blocked_id)}')">${avHtml(u,'av-sm')}<div class="ci-info"><div class="ci-name">${esc(u.username||'?')}</div><div class="ci-preview">Klasse ${esc(String(u.grade||'?'))}</div></div></div>`;
+    }).join('');
 }
-
 async function toggleBlock(){
   if(currentChat?.type!=='dm'||!currentChat.partner)return;
-  const p=currentChat.partner;const bl=isBlocked(p.id);
+  const p=currentChat.partner,bl=isBlocked(p.id);
   openConfirm(bl?'Blockierung aufheben?':`${p.username} blockieren?`,
     bl?`${p.username} kann dir danach wieder schreiben.`:`${p.username} kann dir dann nicht mehr schreiben.`,
     async()=>{closeConfirm();
@@ -846,44 +944,55 @@ function refreshBlockUI(){
   document.getElementById('block-btn').classList.toggle('on',bl);
   document.getElementById('bar-by-me').classList.toggle('hidden',!bl);
   document.getElementById('input-area').classList.toggle('hidden',bl);
-  /* FIX: update profile panel block button if visible */
   const pb=document.getElementById('prof-block-btn');
   if(pb){pb.textContent=bl?'Entsperren':'Blockieren';pb.classList.toggle('unblock',bl);}
 }
 
-/* ══ ALL USERS ══
-   FIX: always select public_key so E2E works when opening a chat */
+/* ══════════════════════════════════════════════════
+   ALL USERS
+══════════════════════════════════════════════════ */
 async function loadAllUsers(){
-  const{data}=await db.from('dsn_users').select('id,username,real_name,grade,avatar_url,public_key').neq('id',me.id).order('username');
-  allUsers=data||[];
-  renderPeople(allUsers);
+  const{data}=await db.from('dsn_users')
+    .select('id,username,real_name,grade,avatar_url,public_key')
+    .neq('id',me.id).order('username');
+  allUsers=data||[];renderPeople(allUsers);
 }
 function renderPeople(list){
   const el=document.getElementById('people-list');
   if(!list.length){el.innerHTML=`<div class="empty-list"><p>Niemand gefunden</p></div>`;return;}
   el.innerHTML=`<div class="sec-label">${list.length} Personen</div>`+
-    list.map(u=>{const bl=isBlocked(u.id)?` <span style="font-size:10px;color:var(--danger);font-weight:700">· Blockiert</span>`:'';
-      return`<div class="ci" onclick="openDM('${u.id}')">
-        <div class="av-wrap">${avHtml(u,'av-sm')}<div class="online-dot ${onlineUsers.has(u.id)?'visible':''}"></div></div>
-        <div class="ci-info"><div class="ci-name">${esc(u.username)}${bl}</div><div class="ci-preview">${esc(u.real_name||'')} · Klasse ${u.grade||'?'}</div></div>
-      </div>`;}).join('');
+    list.map(u=>{
+      const bl=isBlocked(u.id)?` <span style="font-size:10px;color:var(--danger);font-weight:700">· Blockiert</span>`:'';
+      const online=onlineUsers.has(u.id);
+      return`<div class="ci" onclick="openDM('${esc(u.id)}')">
+        <div class="av-wrap">${avHtml(u,'av-sm')}<div class="online-dot ${online?'visible':''}"></div></div>
+        <div class="ci-info"><div class="ci-name">${esc(u.username)}${bl}</div><div class="ci-preview">${esc(u.real_name||'')} · Klasse ${esc(String(u.grade||'?'))}</div></div>
+      </div>`;
+    }).join('');
 }
-function filterPeople(){
+const filterPeople=debounce(function(){
   const q=document.getElementById('search-inp').value.trim().toLowerCase();
   renderPeople(q?allUsers.filter(u=>u.username.toLowerCase().includes(q)||(u.real_name||'').toLowerCase().includes(q)):allUsers);
+},150);
+
+/* ══════════════════════════════════════════════════
+   TABS
+══════════════════════════════════════════════════ */
+function switchTab(name){
+  ['chats','people','blocked'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===name);
+    document.getElementById('panel-'+t).classList.toggle('active',t===name);
+  });
+  if(name==='people')renderPeople(allUsers);
+  if(name==='blocked')renderBlockedTab().catch(()=>{});
 }
 
-/* ══ CONVERSATIONS ══
-   BUG FIX: Previously ONE try-catch wrapped everything.
-   If the group tables query threw, the entire function failed silently and
-   the conv-list stayed as a spinner forever.
-   FIX: DM and group queries each have their own try-catch.
-   The conv-list is ALWAYS updated at the end, even if both fail. */
+/* ══════════════════════════════════════════════════
+   CONVERSATIONS
+══════════════════════════════════════════════════ */
 async function loadConversations(){
   if(!me)return;
   let dmConvs=[],grpConvs=[];
-
-  /* ── DM CONVERSATIONS ── */
   try{
     const[{data:sent},{data:recv}]=await Promise.all([
       db.from('dsn_messages').select('to_id,from_id,content,created_at').eq('from_id',me.id).order('created_at',{ascending:false}),
@@ -895,77 +1004,54 @@ async function loadConversations(){
     if(dmIds.size){
       const{data:users}=await db.from('dsn_users').select('id,username,real_name,grade,avatar_url,public_key').in('id',[...dmIds]);
       const umap={};(users||[]).forEach(u=>umap[u.id]=u);
-      const unreadMap={};(recv||[]).filter(m=>!m.read).forEach(m=>{unreadMap[m.from_id]=(unreadMap[m.from_id]||0)+1;});
+      const unreadMap={};
+      (recv||[]).filter(m=>!m.read).forEach(m=>{unreadMap[m.from_id]=(unreadMap[m.from_id]||0)+1;});
       for(const uid of dmIds){
         const u=umap[uid];if(!u)continue;
-        const allM=[...(sent||[]).filter(m=>m.to_id===uid),...(recv||[]).filter(m=>m.from_id===uid)].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+        const allM=[...(sent||[]).filter(m=>m.to_id===uid),...(recv||[]).filter(m=>m.from_id===uid)]
+          .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
         const last=allM[0];
         let preview='';
         if(last){
-          const raw=last.content||'';
-          const fromMe=last.from_id===me.id||last.to_id===uid;
-          const prefix=fromMe?'Du: ':'';
+          const raw=last.content||'',fromMe=last.from_id===me.id,prefix=fromMe?'Du: ':'';
           if(raw.startsWith('IMAGE:'))preview=prefix+'📷 Foto';
           else if(raw.startsWith('VIDEO:'))preview=prefix+'🎬 Video';
-          /* FIX: decrypt preview only if both keys available; catch separately */
           else if(myPriv&&u.public_key&&raw.includes('.')){
-            try{
-              const dec=await decMsg(myPriv,u.public_key,raw);
-              if(dec.startsWith('IMAGE:'))preview=prefix+'📷 Foto';
-              else if(dec.startsWith('VIDEO:'))preview=prefix+'🎬 Video';
-              else preview=prefix+dec.slice(0,42);
-            }catch{preview='🔒 Verschlüsselt';}
-          }else{preview=prefix+(raw.startsWith('E2E.')?'🔒 Verschlüsselt':raw.slice(0,42));}
+            try{const dec=await decMsg(myPriv,u.public_key,raw);if(dec.startsWith('IMAGE:'))preview=prefix+'📷 Foto';else if(dec.startsWith('VIDEO:'))preview=prefix+'🎬 Video';else preview=prefix+dec.slice(0,42);}
+            catch{preview='🔒 Verschlüsselt';}
+          }else preview=prefix+(raw.startsWith('E2E.')?'🔒 Verschlüsselt':raw.slice(0,42));
         }
         dmConvs.push({type:'dm',user:u,last,unread:unreadMap[uid]||0,preview,ts:last?.created_at||''});
       }
     }
-  }catch(e){console.error('DM conv error:',e);}
-
-  /* ── GROUP CONVERSATIONS — optional, skip gracefully if tables missing ── */
+  }catch(e){console.error('DM conv:',e);}
   try{
-    const{data:memberRows,error:mErr}=await db.from('dsn_group_members').select('group_id').eq('user_id',me.id);
-    if(!mErr&&memberRows?.length){
+    const{data:memberRows}=await db.from('dsn_group_members').select('group_id').eq('user_id',me.id);
+    if(memberRows?.length){
       const groupIds=memberRows.map(r=>r.group_id);
       const{data:groups}=await db.from('dsn_groups').select('*').in('id',groupIds).order('updated_at',{ascending:false});
       for(const g of groups||[]){
-        /* FIX: unread count uses separate safe query */
-        let unread=0;
-        try{
-          const{count}=await db.from('dsn_group_messages').select('id',{count:'exact',head:true}).eq('group_id',g.id).neq('from_id',me.id).eq('read_by_me',false);
-          unread=count||0;
-        }catch{}
         let preview='';
-        if(g.last_message){
-          if(g.last_message.startsWith('IMAGE:'))preview='📷 Foto';
-          else if(g.last_message.startsWith('VIDEO:'))preview='🎬 Video';
-          else preview=g.last_message.slice(0,42);
-        }
-        grpConvs.push({type:'group',group:g,unread,preview,ts:g.updated_at||g.created_at||''});
+        if(g.last_message){if(g.last_message.startsWith('IMAGE:'))preview='📷 Foto';else if(g.last_message.startsWith('VIDEO:'))preview='🎬 Video';else preview=g.last_message.slice(0,42);}
+        grpConvs.push({type:'group',group:g,unread:0,preview,ts:g.updated_at||g.created_at||''});
       }
     }
-  }catch(e){console.warn('Group convs not available (tables may not exist yet):',e.message);}
-
-  /* FIX: ALWAYS update conv-list, even if both arrays are empty */
+  }catch(e){console.warn('Group convs:',e.message);}
   const all=[...dmConvs,...grpConvs].sort((a,b)=>new Date(b.ts)-new Date(a.ts));
   const el=document.getElementById('conv-list');
-  /* preserve the "new group" button that's outside the list-scroll */
-  if(!all.length){
-    el.innerHTML=`<div class="empty-list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><p>Noch keine Chats</p></div>`;
-    return;
-  }
+  if(!all.length){el.innerHTML=`<div class="empty-list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><p>Noch keine Chats</p></div>`;return;}
   el.innerHTML=all.map(c=>{
-    const cnt=c.unread||0;const badge=cnt?`<div class="ubadge">${cnt}</div>`:'';const time=c.ts?fmtTime(c.ts):'';
+    const cnt=c.unread||0,badge=cnt?`<div class="ubadge">${cnt}</div>`:'',time=c.ts?fmtTime(c.ts):'';
     if(c.type==='dm'){
-      const u=c.user;const active=(currentChat?.type==='dm'&&currentChat?.partner?.id===u.id)?' active':'';
-      return`<div class="ci${active}" onclick="openDM('${u.id}')">
+      const u=c.user,active=(currentChat?.type==='dm'&&currentChat?.partner?.id===u.id)?' active':'';
+      return`<div class="ci${active}" onclick="openDM('${esc(u.id)}')">
         <div class="av-wrap">${avHtml(u,'av-sm')}<div class="online-dot ${onlineUsers.has(u.id)?'visible':''}"></div></div>
         <div class="ci-info"><div class="ci-name">${esc(u.username)}</div><div class="ci-preview${cnt?' unread':''}">${esc(c.preview||'')}</div></div>
         <div class="ci-meta"><span class="ci-time">${time}</span>${badge}</div>
       </div>`;
     }else{
-      const g=c.group;const active=(currentChat?.type==='group'&&currentChat?.group?.id===g.id)?' active':'';
-      return`<div class="ci${active}" onclick="openGroupChat('${g.id}')">
+      const g=c.group,active=(currentChat?.type==='group'&&currentChat?.group?.id===g.id)?' active':'';
+      return`<div class="ci${active}" onclick="openGroupChat('${esc(g.id)}')">
         <div class="av-wrap">${groupAvHtml('av-sm')}</div>
         <div class="ci-info"><div class="ci-name">${esc(g.name)}</div><div class="ci-preview${cnt?' unread':''}">${esc(c.preview||'')}</div></div>
         <div class="ci-meta"><span class="ci-time">${time}</span>${badge}</div>
@@ -974,21 +1060,18 @@ async function loadConversations(){
   }).join('');
 }
 
-/* ══ OPEN DM ══
-   FIX: select specific columns incl. public_key explicitly
-   FIX: profile panel is populated immediately (not only on toggle) */
+/* ══════════════════════════════════════════════════
+   OPEN DM
+══════════════════════════════════════════════════ */
 async function openDM(uid){
-  /* FIX: always get fresh data with public_key */
-  const{data:u}=await db.from('dsn_users').select('id,username,real_name,grade,avatar_url,public_key,created_at').eq('id',uid).single();
-  if(!u)return;
+  const{data:u}=await db.from('dsn_users').select('id,username,real_name,grade,avatar_url,public_key,created_at').eq('id',uid).maybeSingle();
+  if(!u){notify('User nicht gefunden','danger');return;}
   currentChat={type:'dm',partner:u};
-  clearInterval(pollTm);
-  setupChatView();
-  /* Set header */
+  clearInterval(pollTm);setupChatView();
   const chatAv=document.getElementById('chat-av');
-  chatAv.style.background=avCol(u.username);
-  if(u.avatar_url)chatAv.innerHTML=`<img src="${esc(u.avatar_url)}" alt="" onerror="this.style.display='none';this.parentElement.textContent='${u.username[0].toUpperCase()}'"/>`;
-  else chatAv.textContent=u.username[0].toUpperCase();
+  chatAv.innerHTML='';chatAv.style.background=avCol(u.username);
+  if(u.avatar_url){const img=document.createElement('img');img.src=u.avatar_url;img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%';img.onerror=()=>{img.remove();chatAv.textContent=u.username[0].toUpperCase();};chatAv.appendChild(img);}
+  else{chatAv.textContent=u.username[0].toUpperCase();}
   const online=onlineUsers.has(u.id);
   document.getElementById('chat-online-dot').classList.toggle('visible',online);
   document.getElementById('chat-name').textContent=u.username;
@@ -1000,28 +1083,27 @@ async function openDM(uid){
   document.getElementById('bar-by-them').classList.toggle('hidden',!tbm);
   if(tbm||isBlocked(u.id))document.getElementById('input-area').classList.add('hidden');
   else document.getElementById('input-area').classList.remove('hidden');
-  await db.from('dsn_messages').update({read:true}).eq('from_id',u.id).eq('to_id',me.id);
-  /* FIX: populate profile panel immediately */
+  document.getElementById('e2e-bar').classList.remove('hidden');
+  await db.from('dsn_messages').update({read:true}).eq('from_id',u.id).eq('to_id',me.id).catch(()=>{});
   renderProfPanel();
   await loadMsgs(true);
   pollTm=setInterval(()=>pollMsgs(),2000);
-  switchTab('chats');
-  loadConversations().catch(()=>{});
+  switchTab('chats');loadConversations().catch(()=>{});
 }
 
-/* ══ OPEN GROUP CHAT ══ */
+/* ══════════════════════════════════════════════════
+   OPEN GROUP
+══════════════════════════════════════════════════ */
 async function openGroupChat(gid){
-  const{data:g}=await db.from('dsn_groups').select('*').eq('id',gid).single();
-  if(!g)return;
+  const{data:g}=await db.from('dsn_groups').select('*').eq('id',gid).maybeSingle();
+  if(!g){notify('Gruppe nicht gefunden','danger');return;}
   const{data:memberRows}=await db.from('dsn_group_members').select('user_id').eq('group_id',gid);
   const memberIds=(memberRows||[]).map(r=>r.user_id);
   const{data:members}=await db.from('dsn_users').select('id,username,real_name,grade,avatar_url,public_key').in('id',memberIds);
-  g.members=members||[];
-  currentChat={type:'group',group:g};
-  clearInterval(pollTm);
-  setupChatView();
+  g.members=members||[];currentChat={type:'group',group:g};
+  clearInterval(pollTm);setupChatView();
   const chatAv=document.getElementById('chat-av');
-  chatAv.style.background='#7c3aed';chatAv.innerHTML='';chatAv.textContent='👥';
+  chatAv.innerHTML='';chatAv.style.background='#7c3aed';chatAv.textContent='👥';
   document.getElementById('chat-name').textContent=g.name;
   document.getElementById('chat-meta').textContent=`${g.members.length} Mitglieder`;
   document.getElementById('chat-online-dot').classList.remove('visible');
@@ -1029,40 +1111,34 @@ async function openGroupChat(gid){
   document.getElementById('bar-by-me').classList.add('hidden');
   document.getElementById('bar-by-them').classList.add('hidden');
   document.getElementById('input-area').classList.remove('hidden');
-  try{await db.from('dsn_group_messages').update({read_by_me:true}).eq('group_id',gid).neq('from_id',me.id);}catch{}
+  document.getElementById('e2e-bar').classList.add('hidden');
   renderProfPanel();
   await loadGroupMsgs(true);
   pollTm=setInterval(()=>pollGroupMsgs(),2000);
-  switchTab('chats');
-  loadConversations().catch(()=>{});
+  switchTab('chats');loadConversations().catch(()=>{});
 }
 
 function setupChatView(){
   document.getElementById('chat-empty').classList.add('hidden');
-  const cv=document.getElementById('chat-view');cv.classList.remove('hidden');cv.style.display='flex';
-  renderedIds.clear();document.getElementById('msgs').innerHTML='';
-  cancelUpload();
-  /* keep profile panel at its current state */
+  const cv=document.getElementById('chat-view');
+  cv.classList.remove('hidden');cv.style.display='flex';
+  renderedIds.clear();document.getElementById('msgs').innerHTML='';cancelUpload();
 }
 
-/* ══ PROFILE PANEL ══
-   FIX: prof-body was always empty until toggle was clicked.
-   Now renderProfPanel() is called when a chat is opened.
-   The panel itself is still hidden (not open) but its content is ready. */
+/* ══════════════════════════════════════════════════
+   PROFILE PANEL
+══════════════════════════════════════════════════ */
 function renderProfPanel(){
   const body=document.getElementById('prof-body');
   const titleEl=document.getElementById('prof-panel-title');
   if(!body)return;
   if(currentChat?.type==='dm'){
-    const u=currentChat.partner;
-    if(!u){body.innerHTML='';return;}
+    const u=currentChat.partner;if(!u){body.innerHTML='';return;}
     const online=onlineUsers.has(u.id);
     titleEl.textContent='Profil';
-    const avContent=u.avatar_url
-      ?`<img src="${esc(u.avatar_url)}" alt="" onerror="this.style.display='none';this.parentElement.textContent='${(u.username||'?')[0].toUpperCase()}'"/>`
-      :(u.username||'?')[0].toUpperCase();
-    body.innerHTML=`
-      <div style="display:flex;justify-content:center"><div class="prof-av-lg" style="background:${avCol(u.username)}">${avContent}</div></div>
+    const avDiv=document.createElement('div');avDiv.style.display='flex';avDiv.style.justifyContent='center';
+    const avEl=makeAvEl(u,'prof-av-lg');avEl.style.margin='0 auto';avDiv.appendChild(avEl);
+    body.innerHTML=`<div id="prof-av-slot"></div>
       <div><div class="prof-name">${esc(u.username||'')}</div><div class="prof-user">@${esc(u.username||'')}</div>${online?`<div class="prof-online-status">● Online</div>`:''}</div>
       <div class="prof-stats">
         <div class="stat-box"><div class="stat-val">${esc(String(u.grade||'?'))}</div><div class="stat-label">Klasse</div></div>
@@ -1070,19 +1146,20 @@ function renderProfPanel(){
       </div>
       <div class="prof-div"></div>
       <button class="btn-block ${isBlocked(u.id)?'unblock':''}" id="prof-block-btn" onclick="toggleBlock()">${isBlocked(u.id)?'Entsperren':'Blockieren'}</button>`;
+    document.getElementById('prof-av-slot').replaceWith(avDiv);
   }else if(currentChat?.type==='group'){
     const g=currentChat.group;if(!g){body.innerHTML='';return;}
     const isAdmin=g.admin_id===me.id;
     titleEl.textContent='Gruppeninfo';
     const membersHtml=(g.members||[]).map(m=>{
-      const isMeRow=m.id===me.id;const isAdm=m.id===g.admin_id;
-      const kickBtn=isAdmin&&!isMeRow&&!isAdm?`<button class="kick-btn" onclick="kickMember('${m.id}')" title="Kicken">✕</button>`:'';
-      const avC=m.avatar_url?`<img src="${esc(m.avatar_url)}" alt=""/>`:m.username[0].toUpperCase();
-      return`<div class="member-row"><div class="member-av" style="background:${avCol(m.username)}">${avC}</div><div class="member-name">${esc(m.username)}</div>${isAdm?`<span class="member-badge">Admin</span>`:''} ${kickBtn}</div>`;
+      const isMeRow=m.id===me.id,isAdm=m.id===g.admin_id;
+      const kickBtn=isAdmin&&!isMeRow&&!isAdm?`<button class="kick-btn" onclick="kickMember('${esc(m.id)}')" title="Kicken">✕</button>`:'';
+      const avC=m.avatar_url?`<img src="${esc(m.avatar_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.style.display='none'"/>`:esc(m.username[0].toUpperCase());
+      return`<div class="member-row"><div class="member-av" style="background:${avCol(m.username)}">${avC}</div><div class="member-name">${esc(m.username)}</div>${isAdm?`<span class="member-badge">Admin</span>`:''}${kickBtn}</div>`;
     }).join('');
     body.innerHTML=`
       <div style="display:flex;justify-content:center"><div class="prof-av-lg" style="background:#7c3aed;font-size:26px">👥</div></div>
-      <div><div class="prof-name">${esc(g.name)}</div><div class="prof-user">${g.members.length} Mitglieder</div></div>
+      <div><div class="prof-name">${esc(g.name)}</div><div class="prof-user">${esc(String(g.members.length))} Mitglieder</div></div>
       <div class="prof-div"></div>
       <div style="font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Mitglieder</div>
       <div class="members-list">${membersHtml}</div>
@@ -1093,40 +1170,40 @@ function renderProfPanel(){
   }else{body.innerHTML='';}
 }
 function toggleProfile(){
-  const pp=document.getElementById('prof-panel'),ib=document.getElementById('info-btn');
-  const open=pp.classList.contains('open');
-  if(!open)renderProfPanel(); /* always refresh when opening */
+  const pp=document.getElementById('prof-panel'),ib=document.getElementById('info-btn'),open=pp.classList.contains('open');
+  if(!open)renderProfPanel();
   pp.classList.toggle('open',!open);ib.classList.toggle('active',!open);
 }
 
-/* ══ DM MESSAGES ══ */
+/* ══════════════════════════════════════════════════
+   DM MESSAGES
+══════════════════════════════════════════════════ */
 async function loadMsgs(initial=false){
   if(currentChat?.type!=='dm'||!currentChat.partner)return;
   const partner=currentChat.partner;
-  const{data,error}=await db.from('dsn_messages')
-    .select('*').or(`and(from_id.eq.${me.id},to_id.eq.${partner.id}),and(from_id.eq.${partner.id},to_id.eq.${me.id})`)
-    .order('created_at',{ascending:true});
+  const{data,error}=await db.from('dsn_messages').select('*')
+    .or(`and(from_id.eq.${me.id},to_id.eq.${partner.id}),and(from_id.eq.${partner.id},to_id.eq.${me.id})`)
+    .order('created_at',{ascending:true}).limit(200);
   if(error){console.error('loadMsgs:',error);return;}
-  const msgs=data||[];
-  const newMsgs=msgs.filter(m=>!renderedIds.has(m.id));
+  const msgs=data||[],newMsgs=msgs.filter(m=>!renderedIds.has(m.id));
   if(!newMsgs.length)return;
-  const area=document.getElementById('msgs');const THRESH=5*60*1000;
+  const area=document.getElementById('msgs');
+  const THRESH=5*60*1000;
   for(let i=0;i<newMsgs.length;i++){
-    const m=newMsgs[i];const idx=msgs.findIndex(x=>x.id===m.id);
-    const prev=msgs[idx-1],next=msgs[idx+1];const isOut=m.from_id===me.id;
+    const m=newMsgs[i],idx=msgs.findIndex(x=>x.id===m.id);
+    const prev=msgs[idx-1],next=msgs[idx+1];
+    const isOut=m.from_id===me.id;
     const mDate=new Date(m.created_at).toDateString(),pDate=prev?new Date(prev.created_at).toDateString():null;
     if(mDate!==pDate){const d=document.createElement('div');d.className='date-sep';d.textContent=new Date(m.created_at).toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});area.appendChild(d);}
     const sp=prev&&prev.from_id===m.from_id&&(new Date(m.created_at)-new Date(prev.created_at))<THRESH;
     const sn=next&&next.from_id===m.from_id&&(new Date(next.created_at)-new Date(m.created_at))<THRESH;
     let gc='';if(sp&&sn)gc='g-mid';else if(sp)gc='g-bot';else if(sn)gc='g-top';
-    /* FIX: use partner.public_key from currentChat — always available */
     let plain='🔒';
     try{
-      if(myPriv&&partner.public_key&&m.content&&m.content.includes('.')){
-        plain=await decMsg(myPriv,partner.public_key,m.content);
-      }else if(m.content){plain=m.content;}
+      if(myPriv&&partner.public_key&&m.content&&m.content.includes('.'))plain=await decMsg(myPriv,partner.public_key,m.content);
+      else if(m.content)plain=m.content;
     }catch{plain='🔒';}
-    renderMsgRow(area,m,plain,isOut,gc,initial,sn,null);
+    renderMsgRow(area,m,plain,isOut,gc,initial,sn,isOut?null:partner);
   }
   area.scrollTop=area.scrollHeight;
 }
@@ -1135,31 +1212,36 @@ async function pollMsgs(){
   const pid=currentChat.partner.id,prev=renderedIds.size;
   await loadMsgs(false);
   if(renderedIds.size>prev&&currentChat?.partner?.id===pid){
-    await db.from('dsn_messages').update({read:true}).eq('from_id',pid).eq('to_id',me.id);
+    await db.from('dsn_messages').update({read:true}).eq('from_id',pid).eq('to_id',me.id).catch(()=>{});
     loadConversations().catch(()=>{});
   }
 }
 
-/* ══ GROUP MESSAGES ══ */
+/* ══════════════════════════════════════════════════
+   GROUP MESSAGES
+══════════════════════════════════════════════════ */
 async function loadGroupMsgs(initial=false){
   if(currentChat?.type!=='group')return;
   const gid=currentChat.group.id;
-  const{data,error}=await db.from('dsn_group_messages').select('*').eq('group_id',gid).order('created_at',{ascending:true});
+  const{data,error}=await db.from('dsn_group_messages').select('*').eq('group_id',gid).order('created_at',{ascending:true}).limit(200);
   if(error){console.error('loadGroupMsgs:',error);return;}
-  const msgs=data||[];const newMsgs=msgs.filter(m=>!renderedIds.has(m.id));if(!newMsgs.length)return;
+  const msgs=data||[],newMsgs=msgs.filter(m=>!renderedIds.has(m.id));
+  if(!newMsgs.length)return;
   const senderIds=[...new Set(newMsgs.map(m=>m.from_id))];
   const{data:senders}=await db.from('dsn_users').select('id,username,avatar_url').in('id',senderIds);
   const smap={};(senders||[]).forEach(s=>smap[s.id]=s);
-  const area=document.getElementById('msgs');const THRESH=5*60*1000;
+  const area=document.getElementById('msgs');
+  const THRESH=5*60*1000;
   for(let i=0;i<newMsgs.length;i++){
-    const m=newMsgs[i];const idx=msgs.findIndex(x=>x.id===m.id);
-    const prev=msgs[idx-1],next=msgs[idx+1];const isOut=m.from_id===me.id;
+    const m=newMsgs[i],idx=msgs.findIndex(x=>x.id===m.id);
+    const prev=msgs[idx-1],next=msgs[idx+1];
+    const isOut=m.from_id===me.id;
     const mDate=new Date(m.created_at).toDateString(),pDate=prev?new Date(prev.created_at).toDateString():null;
     if(mDate!==pDate){const d=document.createElement('div');d.className='date-sep';d.textContent=new Date(m.created_at).toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});area.appendChild(d);}
     const sp=prev&&prev.from_id===m.from_id&&(new Date(m.created_at)-new Date(prev.created_at))<THRESH;
     const sn=next&&next.from_id===m.from_id&&(new Date(next.created_at)-new Date(m.created_at))<THRESH;
     let gc='';if(sp&&sn)gc='g-mid';else if(sp)gc='g-bot';else if(sn)gc='g-top';
-    renderMsgRow(area,m,m.content||'',isOut,gc,initial,sn,smap[m.from_id]);
+    renderMsgRow(area,m,m.content||'',isOut,gc,initial,sn,smap[m.from_id]||null);
   }
   area.scrollTop=area.scrollHeight;
 }
@@ -1167,25 +1249,20 @@ async function pollGroupMsgs(){
   if(currentChat?.type!=='group'||!currentChat.group)return;
   const gid=currentChat.group.id,prev=renderedIds.size;
   await loadGroupMsgs(false);
-  if(renderedIds.size>prev&&currentChat?.group?.id===gid){
-    await db.from('dsn_group_messages').update({read_by_me:true}).eq('group_id',gid).neq('from_id',me.id).catch(()=>{});
-    loadConversations().catch(()=>{});
-  }
+  if(renderedIds.size>prev&&currentChat?.group?.id===gid)loadConversations().catch(()=>{});
 }
 
-/* ══ RENDER MSG ROW ══ */
+/* ══════════════════════════════════════════════════
+   RENDER MSG ROW
+══════════════════════════════════════════════════ */
 function renderMsgRow(area,m,plain,isOut,gc,initial,sn,sender){
-  const isImg=plain.startsWith('IMAGE:'),isVid=plain.startsWith('VIDEO:');
-  const showTime=!sn;const ts=new Date(m.created_at).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+  const isImg=plain.startsWith('IMAGE:'),isVid=plain.startsWith('VIDEO:'),showTime=!sn;
+  const ts=new Date(m.created_at).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
   const row=document.createElement('div');
   row.className=`msg-row ${isOut?'out':'in'} ${gc}${initial?'':' is-new'}`;
   row.dataset.id=m.id;
-  if(!isOut){
-    const a=document.createElement('div');a.className='msg-av';
-    const src=sender||(currentChat?.type==='dm'?currentChat?.partner:null);
-    if(src){a.style.background=avCol(src.username||'');if(src.avatar_url)a.innerHTML=`<img src="${esc(src.avatar_url)}" alt=""/>`;else a.textContent=(src.username||'?')[0].toUpperCase();}
-    row.appendChild(a);
-  }else{const s=document.createElement('div');s.className='msg-spacer';row.appendChild(s);}
+  if(!isOut){const a=makeAvEl(sender||null,'msg-av');row.appendChild(a);}
+  else{const s=document.createElement('div');s.className='msg-spacer';row.appendChild(s);}
   const bw=document.createElement('div');
   bw.style.cssText=`display:flex;flex-direction:column;align-items:${isOut?'flex-end':'flex-start'};max-width:68%`;
   if(!isOut&&sender&&currentChat?.type==='group'&&!gc.includes('g-mid')&&!gc.includes('g-bot')){
@@ -1200,33 +1277,35 @@ function renderMsgRow(area,m,plain,isOut,gc,initial,sn,sender){
     bw.appendChild(wrap);
   }else{
     const b=document.createElement('div');b.className=`bubble ${isOut?'out':'in'}`;
-    b.innerHTML=esc(plain).replace(/\n/g,'<br>')+(showTime?`<span class="b-time">${ts}</span>`:'');
+    b.textContent=plain;
+    b.innerHTML=b.innerHTML.replace(/\n/g,'<br>');
+    if(showTime){const ts2=document.createElement('span');ts2.className='b-time';ts2.textContent=ts;b.appendChild(ts2);}
     bw.appendChild(b);
   }
   row.appendChild(bw);
   if(isOut){
     const acts=document.createElement('div');acts.className='msg-actions';
-    const del=document.createElement('button');del.className='msg-act-btn';del.title='Löschen';del.innerHTML='🗑';
+    const del=document.createElement('button');del.className='msg-act-btn';del.title='Löschen';del.textContent='🗑';
     del.onclick=()=>deleteMsg(m.id,row);acts.appendChild(del);row.appendChild(acts);
   }
   area.appendChild(row);renderedIds.add(m.id);
 }
-
 async function deleteMsg(msgId,rowEl){
   openConfirm('Nachricht löschen?','Die Nachricht wird für alle gelöscht.',async()=>{
     closeConfirm();
     try{
-      if(currentChat?.type==='group'){await db.from('dsn_group_messages').delete().eq('id',msgId).eq('from_id',me.id);}
-      else{await db.from('dsn_messages').delete().eq('id',msgId).eq('from_id',me.id);}
+      if(currentChat?.type==='group')await db.from('dsn_group_messages').delete().eq('id',msgId).eq('from_id',me.id);
+      else await db.from('dsn_messages').delete().eq('id',msgId).eq('from_id',me.id);
       rowEl.remove();renderedIds.delete(msgId);loadConversations().catch(()=>{});
     }catch(e){notify('Löschen fehlgeschlagen: '+e.message,'danger');}
   });
 }
 
-/* ══ SEND ══
-   FIX: detailed error reporting for upload failures */
+/* ══════════════════════════════════════════════════
+   SEND
+══════════════════════════════════════════════════ */
 async function sendMsg(){
-  const inp=document.getElementById('msg-inp');const text=inp.value.trim();
+  const inp=document.getElementById('msg-inp'),text=inp.value.trim();
   if(!text&&!pendingFile)return;
   if(currentChat?.type==='dm'&&isBlocked(currentChat.partner?.id))return;
   const btn=document.getElementById('send-btn');btn.disabled=true;
@@ -1263,41 +1342,52 @@ async function sendGroupMsg(text){
   if(pendingFile){
     notify('Wird hochgeladen…');
     const url=await uploadFile(pendingFile.file,MEDIA_BUCKET);
-    const prefix=pendingFile.isVideo?'VIDEO:':'IMAGE:';const content=prefix+url;
-    const{error}=await db.from('dsn_group_messages').insert({group_id:gid,from_id:me.id,content,read_by_me:true});
+    const prefix=pendingFile.isVideo?'VIDEO:':'IMAGE:';
+    const content=prefix+url;
+    const{error}=await db.from('dsn_group_messages').insert({group_id:gid,from_id:me.id,content});
     if(error)throw new Error('Senden fehlgeschlagen: '+error.message);
-    await db.from('dsn_groups').update({last_message:content,updated_at:new Date().toISOString()}).eq('id',gid);
+    await db.from('dsn_groups').update({last_message:content,updated_at:new Date().toISOString()}).eq('id',gid).catch(e=>console.warn(e.message));
     cancelUpload();
   }
   if(text){
-    const{error}=await db.from('dsn_group_messages').insert({group_id:gid,from_id:me.id,content:text,read_by_me:true});
+    const{error}=await db.from('dsn_group_messages').insert({group_id:gid,from_id:me.id,content:text});
     if(error)throw new Error('Senden fehlgeschlagen: '+error.message);
-    await db.from('dsn_groups').update({last_message:text,updated_at:new Date().toISOString()}).eq('id',gid);
+    await db.from('dsn_groups').update({last_message:text,updated_at:new Date().toISOString()}).eq('id',gid).catch(e=>console.warn(e.message));
   }
 }
 function inputKd(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
 function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
 
-/* ══ GROUP MANAGEMENT ══ */
-function openGroupModal(){grpSelectedIds.clear();document.getElementById('grp-name').value='';document.getElementById('grp-err').textContent='';document.getElementById('grp-search').value='';filterGrpSearch();updateGrpSelected();document.getElementById('group-modal').classList.add('open');}
+/* ══════════════════════════════════════════════════
+   GROUP MANAGEMENT
+══════════════════════════════════════════════════ */
+function openGroupModal(){
+  grpSelectedIds.clear();
+  document.getElementById('grp-name').value='';document.getElementById('grp-err').textContent='';
+  document.getElementById('grp-search').value='';filterGrpSearch();updateGrpSelected();
+  document.getElementById('group-modal').classList.add('open');
+}
 function closeGroupModal(){document.getElementById('group-modal').classList.remove('open');}
-function filterGrpSearch(){
+const filterGrpSearch=debounce(function(){
   const q=document.getElementById('grp-search').value.trim().toLowerCase();
   const list=q?allUsers.filter(u=>u.username.toLowerCase().includes(q)||(u.real_name||'').toLowerCase().includes(q)):allUsers;
   const el=document.getElementById('grp-search-results');
   if(!list.length){el.innerHTML=`<div style="padding:12px;text-align:center;font-size:13px;color:var(--text3)">Niemand gefunden</div>`;return;}
   el.innerHTML=list.map(u=>{const sel=grpSelectedIds.has(u.id);
-    return`<div class="grp-user-row ${sel?'selected':''}" onclick="toggleGrpSelect('${u.id}')">
-      ${avHtml(u,'av-sm')}<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text)">${esc(u.username)}</div><div style="font-size:11px;color:var(--text3)">${esc(u.real_name||'')} · Klasse ${u.grade||'?'}</div></div>
+    return`<div class="grp-user-row ${sel?'selected':''}" onclick="toggleGrpSelect('${esc(u.id)}')">
+      ${avHtml(u,'av-sm')}<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text)">${esc(u.username)}</div><div style="font-size:11px;color:var(--text3)">${esc(u.real_name||'')} · Klasse ${esc(String(u.grade||'?'))}</div></div>
       ${sel?`<span style="color:var(--blue);font-weight:700">✓</span>`:''}
-    </div>`;}).join('');
-}
+    </div>`;
+  }).join('');
+},150);
 function toggleGrpSelect(uid){if(grpSelectedIds.has(uid))grpSelectedIds.delete(uid);else grpSelectedIds.add(uid);filterGrpSearch();updateGrpSelected();}
 function updateGrpSelected(){
   document.getElementById('grp-selected-count').textContent=grpSelectedIds.size;
   const umap={};allUsers.forEach(u=>umap[u.id]=u);
-  document.getElementById('grp-selected-list').innerHTML=[...grpSelectedIds].map(id=>{const u=umap[id];if(!u)return'';
-    return`<span style="display:inline-flex;align-items:center;gap:5px;background:var(--blue-lt);border:1px solid var(--blue-bd);border-radius:var(--r-full);padding:3px 10px 3px 6px;font-size:12px;font-weight:600;color:var(--blue)">${esc(u.username)}<button onclick="toggleGrpSelect('${id}')" style="color:var(--blue);font-size:13px;line-height:1;margin-left:2px">✕</button></span>`;}).join('');
+  document.getElementById('grp-selected-list').innerHTML=[...grpSelectedIds].map(id=>{
+    const u=umap[id];if(!u)return'';
+    return`<span style="display:inline-flex;align-items:center;gap:5px;background:var(--blue-lt);border:1px solid var(--blue-bd);border-radius:var(--r-full);padding:3px 10px 3px 6px;font-size:12px;font-weight:600;color:var(--blue)">${esc(u.username)}<button onclick="toggleGrpSelect('${esc(id)}')" style="color:var(--blue);font-size:13px;line-height:1;margin-left:2px">✕</button></span>`;
+  }).join('');
 }
 async function createGroup(){
   const name=document.getElementById('grp-name').value.trim();
@@ -1310,20 +1400,22 @@ async function createGroup(){
     await db.from('dsn_group_members').insert([me.id,...grpSelectedIds].map(uid=>({group_id:g.id,user_id:uid})));
     closeGroupModal();notify(`Gruppe "${name}" erstellt`,'success');
     await loadConversations();await openGroupChat(g.id);
-  }catch(e){errEl.textContent='Fehler: '+(e.message||e);console.error(e);}
+  }catch(e){errEl.textContent='Fehler: '+(e.message||String(e));console.error(e);}
 }
 async function kickMember(uid){
   const gid=currentChat?.group?.id;if(!gid)return;
   const u=currentChat.group.members?.find(m=>m.id===uid);
   openConfirm(`${u?.username||'User'} kicken?`,'Mitglied wird aus der Gruppe entfernt.',async()=>{
-    closeConfirm();await db.from('dsn_group_members').delete().eq('group_id',gid).eq('user_id',uid);
+    closeConfirm();
+    await db.from('dsn_group_members').delete().eq('group_id',gid).eq('user_id',uid);
     notify('Mitglied entfernt');await openGroupChat(gid);
   });
 }
 async function leaveGroup(){
   const gid=currentChat?.group?.id;if(!gid)return;
   openConfirm('Gruppe verlassen?','Du verlässt diese Gruppe.',async()=>{
-    closeConfirm();await db.from('dsn_group_members').delete().eq('group_id',gid).eq('user_id',me.id);
+    closeConfirm();
+    await db.from('dsn_group_members').delete().eq('group_id',gid).eq('user_id',me.id);
     currentChat=null;clearInterval(pollTm);
     document.getElementById('chat-view').classList.add('hidden');
     document.getElementById('chat-empty').classList.remove('hidden');
@@ -1345,74 +1437,75 @@ async function deleteGroup(){
     notify('Gruppe gelöscht','danger');loadConversations().catch(()=>{});
   });
 }
-function openAddMemberModal(){filterAddMember();document.getElementById('addm-search').value='';document.getElementById('addm-err').textContent='';document.getElementById('addmember-modal').classList.add('open');}
+function openAddMemberModal(){
+  document.getElementById('addm-search').value='';document.getElementById('addm-err').textContent='';
+  filterAddMember();document.getElementById('addmember-modal').classList.add('open');
+}
 function closeAddMemberModal(){document.getElementById('addmember-modal').classList.remove('open');}
-function filterAddMember(){
+const filterAddMember=debounce(function(){
   if(currentChat?.type!=='group')return;
   const existingIds=new Set((currentChat.group.members||[]).map(m=>m.id));
   const q=document.getElementById('addm-search').value.trim().toLowerCase();
   const list=allUsers.filter(u=>!existingIds.has(u.id)&&(!q||u.username.toLowerCase().includes(q)||(u.real_name||'').toLowerCase().includes(q)));
   const el=document.getElementById('addm-results');
   if(!list.length){el.innerHTML=`<div style="padding:12px;text-align:center;font-size:13px;color:var(--text3)">Niemand gefunden</div>`;return;}
-  el.innerHTML=list.map(u=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;transition:background .1s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''" onclick="addMember('${u.id}')">
-    ${avHtml(u,'av-sm')}<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">${esc(u.username)}</div><div style="font-size:11px;color:var(--text3)">${esc(u.real_name||'')} · Klasse ${u.grade||'?'}</div></div>
-    <span style="background:var(--blue);color:#fff;border-radius:var(--r-full);padding:4px 12px;font-size:12px;font-weight:600">+</span></div>`).join('');
-}
+  el.innerHTML=list.map(u=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;transition:background .1s"
+         onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''"
+         onclick="addMember('${esc(u.id)}')">
+      ${avHtml(u,'av-sm')}
+      <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">${esc(u.username)}</div><div style="font-size:11px;color:var(--text3)">${esc(u.real_name||'')} · Klasse ${esc(String(u.grade||'?'))}</div></div>
+      <span style="background:var(--blue);color:#fff;border-radius:var(--r-full);padding:4px 12px;font-size:12px;font-weight:600">+</span>
+    </div>`).join('');
+},150);
 async function addMember(uid){
   const gid=currentChat?.group?.id;if(!gid)return;
   try{
     await db.from('dsn_group_members').insert({group_id:gid,user_id:uid});
-    const u=allUsers.find(x=>x.id===uid);notify(`${u?.username||'User'} hinzugefügt`,'success');
+    const u=allUsers.find(x=>x.id===uid);
+    notify(`${u?.username||'User'} hinzugefügt`,'success');
     closeAddMemberModal();await openGroupChat(gid);
   }catch(e){document.getElementById('addm-err').textContent='Fehler: '+e.message;}
 }
 
-/* ══ LIGHTBOX ══ */
+/* ══════════════════════════════════════════════════
+   LIGHTBOX
+══════════════════════════════════════════════════ */
 function openLightbox(type,url){
-  const lb=document.getElementById('lightbox'),ct=document.getElementById('lb-content');ct.innerHTML='';
+  const lb=document.getElementById('lightbox'),ct=document.getElementById('lb-content');
+  ct.innerHTML='';
   if(type==='img'){const img=document.createElement('img');img.src=url;ct.appendChild(img);}
-  else{const vid=document.createElement('video');vid.src=url;vid.controls=true;vid.autoplay=true;ct.appendChild(vid);}
+  else{const vid=document.createElement('video');vid.src=url;vid.controls=true;vid.muted=true;vid.autoplay=true;ct.appendChild(vid);}
   lb.classList.add('open');
 }
 function closeLightbox(){document.getElementById('lightbox').classList.remove('open');document.getElementById('lb-content').innerHTML='';}
 document.getElementById('lightbox').addEventListener('click',e=>{if(e.target.id==='lightbox')closeLightbox();});
 
-/* ══ TABS ══ */
-function switchTab(name){
-  ['chats','people','blocked'].forEach(t=>{
-    document.getElementById('tab-'+t).classList.toggle('active',t===name);
-    document.getElementById('panel-'+t).classList.toggle('active',t===name);
-  });
-}
-
-/* ══ CONFIRM ══ */
+/* ══════════════════════════════════════════════════
+   CONFIRM
+══════════════════════════════════════════════════ */
 function openConfirm(title,body,onOk){
-  document.getElementById('conf-title').textContent=title;document.getElementById('conf-body').textContent=body;
-  document.getElementById('conf-ok').onclick=onOk;document.getElementById('confirm-modal').classList.add('open');
+  document.getElementById('conf-title').textContent=title;
+  document.getElementById('conf-body').textContent=body;
+  const oldBtn=document.getElementById('conf-ok');
+  const newBtn=oldBtn.cloneNode(true);newBtn.id='conf-ok';
+  newBtn.addEventListener('click',onOk,{once:true});
+  oldBtn.parentNode.replaceChild(newBtn,oldBtn);
+  document.getElementById('confirm-modal').classList.add('open');
 }
 function closeConfirm(){document.getElementById('confirm-modal').classList.remove('open');}
 
-/* ══ NOTIFY ══ */
+/* ══════════════════════════════════════════════════
+   NOTIFY
+══════════════════════════════════════════════════ */
 function notify(msg,type=''){
   const el=document.createElement('div');el.className=`notif ${type}`;
-  el.innerHTML=`<div class="n-dot"></div>${esc(msg)}`;
-  document.getElementById('notif-root').appendChild(el);setTimeout(()=>el.remove(),3200);
-}
-
-/* ══ UTILS ══ */
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function fmtTime(ts){
-  if(!ts)return'';const d=new Date(ts),now=new Date(),diff=now-d;
-  if(diff<60000)return'Jetzt';if(diff<3600000)return Math.floor(diff/60000)+'m';
-  if(diff<86400000)return d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
-  return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
+  const dot=document.createElement('div');dot.className='n-dot';
+  const txt=document.createTextNode(msg);
+  el.appendChild(dot);el.appendChild(txt);
+  document.getElementById('notif-root').appendChild(el);
+  setTimeout(()=>el.remove(),3200);
 }
 </script>
 </body>
-</html>"""
-
-with open('/mnt/user-data/outputs/index.html', 'w', encoding='utf-8') as f:
-    f.write(html)
-print(f"Written: {len(html)} chars, {html.count(chr(10))} lines")
-PYEOF
-python3 /tmp/build_chat.py
+</html>
