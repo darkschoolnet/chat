@@ -113,7 +113,6 @@ input,textarea,select{font-family:inherit}
 /* APP */
 #app{position:fixed;inset:0;z-index:100;display:flex;opacity:0;pointer-events:none;transition:opacity .35s;background:var(--bg)}
 #app.visible{opacity:1;pointer-events:all}
-/* SIDEBAR */
 .sidebar{width:300px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100%;transition:background .3s,border-color .3s}
 .sb-hdr{padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:8px}
 .me-av-wrap{position:relative;flex-shrink:0;cursor:pointer}
@@ -269,7 +268,7 @@ input,textarea,select{font-family:inherit}
 .member-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .member-name{flex:1;font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .3s}
 .member-badge{font-size:10px;font-weight:700;color:var(--blue);background:var(--blue-lt);padding:2px 7px;border-radius:var(--r-full)}
-.kick-btn{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;transition:background .12s,color .12s;flex-shrink:0}
+.kick-btn{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;transition:background .12px,color .12s;flex-shrink:0}
 .kick-btn:hover{background:var(--danger-lt);color:var(--danger)}
 .grp-user-row{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;transition:background .1s}
 .grp-user-row:hover{background:var(--surface2)}
@@ -294,6 +293,8 @@ input,textarea,select{font-family:inherit}
 .notif.warn{background:var(--warn);color:#fff}
 .n-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.55);flex-shrink:0}
 .spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .65s linear infinite;display:inline-block}
+/* Debug bar */
+#debug-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.85);color:#0f0;font-size:11px;padding:4px 10px;z-index:99999;font-family:monospace;display:none}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes msgIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
 @keyframes notifIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
@@ -451,7 +452,7 @@ input,textarea,select{font-family:inherit}
     <div class="tab-panel" id="panel-people">
       <div class="sb-search"><div class="search-row">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="search-inp" placeholder="Suchen…" oninput="debounce(filterPeople,200)()"/>
+        <input type="text" id="search-inp" placeholder="Suchen…" oninput="filterPeople()"/>
       </div></div>
       <div class="list-scroll" id="people-list"><div class="empty-list"><div class="spinner"></div></div></div>
     </div>
@@ -506,16 +507,17 @@ input,textarea,select{font-family:inherit}
   </aside>
 </div>
 <div id="notif-root"></div>
+<div id="debug-bar"></div>
 
 <script>
 /* ══════════════════════════════════════════════════
-   SUPABASE — identische Config wie im Hub
+   SUPABASE CONFIG
 ══════════════════════════════════════════════════ */
 const SUPA_URL = 'https://sigjwzivusuzmhvixtbm.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpZ2p3eml2dXN1em1odml4dGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNTI3MDksImV4cCI6MjA4ODcyODcwOX0.j0yB-NYM5HOkfKVBz24rWMBQNF8w-uEFjX55UGeD30E';
 const db = supabase.createClient(SUPA_URL, SUPA_KEY);
-const MEDIA_BUCKET   = 'dsn-media';
-const AVATAR_BUCKET  = 'dsn-avatars';
+const MEDIA_BUCKET  = 'dsn-media';
+const AVATAR_BUCKET = 'dsn-avatars';
 
 /* ══════════════════════════════════════════════════
    UTILS
@@ -532,19 +534,22 @@ function fmtTime(ts){
   return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
 }
 function debounce(fn,ms){let t;return function(...a){clearTimeout(t);t=setTimeout(()=>fn.apply(this,a),ms);};}
+function dbg(msg){
+  console.log('[DSN]',msg);
+  // Uncomment to show debug bar:
+  // const b=document.getElementById('debug-bar');b.style.display='block';b.textContent=msg;
+}
 
 /* ══════════════════════════════════════════════════
-   CRYPTO — PBKDF2 (identisch zum Hub)
+   CRYPTO — PBKDF2
 ══════════════════════════════════════════════════ */
-async function hashPw(pw, saltHex){
+async function hashPw(pw,saltHex){
   const enc=new TextEncoder();
   const salt=new Uint8Array(saltHex.match(/.{2}/g).map(h=>parseInt(h,16)));
   const key=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveBits']);
   const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations:200000},key,256);
   return Array.from(new Uint8Array(bits)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-
-/* E2E (ECDH + AES-GCM) für Nachrichten */
 async function aesKeyFromPw(pw,saltHex){
   const enc=new TextEncoder();
   const salt=new Uint8Array(saltHex.match(/.{2}/g).map(h=>parseInt(h,16)));
@@ -570,18 +575,14 @@ async function encMsg(priv,theirPub,text){return aesEnc(await ecdhAES(priv,their
 async function decMsg(priv,theirPub,ct){return aesDec(await ecdhAES(priv,theirPub),ct);}
 
 /* ══════════════════════════════════════════════════
-   SESSION — liest auch den geteilten Hub-Session-Key
+   SESSION
 ══════════════════════════════════════════════════ */
-const saveS  = u => sessionStorage.setItem('dsn_chat_s', JSON.stringify(u));
-const savePw = pw => { if(pw) sessionStorage.setItem('dsn_chat_pw', pw); };
-const getS   = () => { try{ return JSON.parse(sessionStorage.getItem('dsn_chat_s')); }catch{return null;} };
-const getPw  = () => sessionStorage.getItem('dsn_chat_pw') || null;
-const clearS = () => { sessionStorage.removeItem('dsn_chat_s'); sessionStorage.removeItem('dsn_chat_pw'); };
-
-/* Shared Session vom Hub lesen (gleiche Origin) */
-function getHubSession(){
-  try{ return JSON.parse(localStorage.getItem('dsn_shared_session')); }catch{return null;}
-}
+const saveS  = u => sessionStorage.setItem('dsn_chat_s',JSON.stringify(u));
+const savePw = pw => {if(pw) sessionStorage.setItem('dsn_chat_pw',pw);};
+const getS   = () => {try{return JSON.parse(sessionStorage.getItem('dsn_chat_s'));}catch{return null;}};
+const getPw  = () => sessionStorage.getItem('dsn_chat_pw')||null;
+const clearS = () => {sessionStorage.removeItem('dsn_chat_s');sessionStorage.removeItem('dsn_chat_pw');};
+function getHubSession(){try{return JSON.parse(localStorage.getItem('dsn_shared_session'));}catch{return null;}}
 
 /* ══════════════════════════════════════════════════
    THEME
@@ -591,8 +592,7 @@ function applyThemeIcon(){
   const icon=t==='dark'?'☀️':'🌙';
   const tb=document.getElementById('theme-btn');
   const ab=document.getElementById('app-theme-btn');
-  if(tb)tb.textContent=icon;
-  if(ab)ab.textContent=icon;
+  if(tb)tb.textContent=icon;if(ab)ab.textContent=icon;
 }
 function toggleTheme(){
   const dark=document.documentElement.getAttribute('data-theme')==='dark';
@@ -609,11 +609,11 @@ function toggleTheme(){
 /* ══════════════════════════════════════════════════
    STATE
 ══════════════════════════════════════════════════ */
-let me=null, myPriv=null;
+let me=null,myPriv=null;
 let currentChat=null;
-let allUsers=[], blockedList=[], renderedIds=new Set();
-let pollTm=null, convTm=null, onlineTm=null;
-let pendingFile=null, pendingAvatar=null;
+let allUsers=[],blockedList=[],renderedIds=new Set();
+let pollTm=null,convTm=null,onlineTm=null;
+let pendingFile=null,pendingAvatar=null;
 let onlineUsers=new Set();
 let grpSelectedIds=new Set();
 
@@ -649,28 +649,22 @@ function groupAvHtml(cls=''){return`<div class="av ${cls}" style="background:#7c
 ══════════════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded',()=>{
   applyThemeIcon();
-  // Erst eigene Chat-Session prüfen
-  const s=getS(), pw=getPw();
-  if(s&&pw){ me=s; enterApp(pw); return; }
-  // Dann Hub-Session prüfen (gleiche Origin = gleiches localStorage)
-  // Hub speichert kein PW — User muss im Chat einloggen, aber wir können Username vorausfüllen
+  const s=getS(),pw=getPw();
+  if(s&&pw){me=s;enterApp(pw);return;}
   const hub=getHubSession();
-  if(hub&&hub.username){
-    document.getElementById('login-user').value=hub.username;
-  }
+  if(hub&&hub.username){document.getElementById('login-user').value=hub.username;}
   document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
   document.getElementById('login-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('login-pass').focus();});
 });
 
 /* ══════════════════════════════════════════════════
-   LOGIN — nutzt dsn_get_salt + dsn_login RPCs (wie Hub)
+   LOGIN
 ══════════════════════════════════════════════════ */
 function openLogin(){
   document.getElementById('login-modal').classList.add('open');
   setTimeout(()=>{
     const u=document.getElementById('login-user');
-    if(u.value)document.getElementById('login-pass').focus();
-    else u.focus();
+    if(u.value)document.getElementById('login-pass').focus();else u.focus();
   },60);
 }
 function closeLogin(){document.getElementById('login-modal').classList.remove('open');}
@@ -684,48 +678,23 @@ async function doLogin(){
   if(!username||!pw){errEl.textContent='Bitte alle Felder ausfüllen.';return;}
   btn.disabled=true;btn.textContent='Suche Account…';
   try{
-    /* SCHRITT 1: Salt holen — identisch zum Hub */
     const{data:salt,error:e1}=await db.rpc('dsn_get_salt',{p_username:username});
-    if(e1){
-      console.error('dsn_get_salt Fehler:',e1);
-      errEl.textContent='Verbindungsfehler: '+(e1.message||e1.code||JSON.stringify(e1));
-      return;
-    }
+    if(e1){errEl.textContent='Verbindungsfehler: '+(e1.message||e1.code||JSON.stringify(e1));return;}
     if(!salt){errEl.textContent='Benutzername nicht gefunden.';return;}
-
     btn.textContent='Prüfe Passwort…';
-    /* SCHRITT 2: Hash berechnen */
     const hash=await hashPw(pw,salt);
-
-    /* SCHRITT 3: Login RPC — identisch zum Hub */
     const{data:user,error:e2}=await db.rpc('dsn_login',{p_username:username,p_password_hash:hash});
-    if(e2){
-      console.error('dsn_login Fehler:',e2);
-      errEl.textContent='Login-Fehler: '+(e2.message||e2.code||JSON.stringify(e2));
-      return;
-    }
+    if(e2){errEl.textContent='Login-Fehler: '+(e2.message||e2.code||JSON.stringify(e2));return;}
     if(!user){errEl.textContent='Falsches Passwort.';return;}
-
-    /* SCHRITT 4: Vollständige User-Daten für E2E laden */
     btn.textContent='Lade Profil…';
-    const{data:fullUser,error:e3}=await db
-      .from('dsn_users')
+    const{data:fullUser}=await db.from('dsn_users')
       .select('id,username,real_name,grade,salt,public_key,encrypted_private_key,avatar_url,created_at')
-      .eq('id',user.id)
-      .maybeSingle();
-
-    const finalUser=fullUser||{...user,salt};
-    me=finalUser;
-    saveS(me);
-    savePw(pw);
-    closeLogin();
+      .eq('id',user.id).maybeSingle();
+    me=fullUser||{...user,salt};
+    saveS(me);savePw(pw);closeLogin();
     await enterApp(pw);
-  }catch(e){
-    console.error('Login Exception:',e);
-    errEl.textContent='Fehler: '+(e.message||String(e));
-  }finally{
-    btn.disabled=false;btn.textContent='Einloggen';
-  }
+  }catch(e){errEl.textContent='Fehler: '+(e.message||String(e));console.error(e);}
+  finally{btn.disabled=false;btn.textContent='Einloggen';}
 }
 
 /* ══════════════════════════════════════════════════
@@ -766,8 +735,7 @@ async function doLogout(){
   clearInterval(pollTm);clearInterval(convTm);clearInterval(onlineTm);
   pollTm=null;convTm=null;onlineTm=null;
   try{await db.from('dsn_online').delete().eq('user_id',me.id);}catch{}
-  clearS();
-  me=null;myPriv=null;currentChat=null;
+  clearS();me=null;myPriv=null;currentChat=null;
   renderedIds.clear();pendingFile=null;onlineUsers.clear();
   document.getElementById('app').classList.remove('visible');
   document.getElementById('chat-view').classList.add('hidden');
@@ -784,8 +752,7 @@ async function setupE2E(pw){
   if(!pw){console.warn('E2E: kein PW');return;}
   try{
     const{data:fresh}=await db.from('dsn_users')
-      .select('id,public_key,encrypted_private_key,salt')
-      .eq('id',me.id).maybeSingle();
+      .select('id,public_key,encrypted_private_key,salt').eq('id',me.id).maybeSingle();
     if(fresh)Object.assign(me,fresh);
     if(me.encrypted_private_key&&me.public_key){
       const aes=await aesKeyFromPw(pw,me.salt);
@@ -836,11 +803,8 @@ function handleFile(inp){
   pendingFile={file,localUrl,isVideo};
   const prev=document.getElementById('upload-preview');
   prev.classList.remove('hidden');
-  if(isVideo){
-    prev.innerHTML=`<div class="up-thumb-vid">🎬</div><span class="up-name">${esc(file.name)}</span><button class="up-cancel" onclick="cancelUpload()">✕</button>`;
-  }else{
-    prev.innerHTML=`<img class="up-thumb" src="${esc(localUrl)}"/><span class="up-name">${esc(file.name)}</span><button class="up-cancel" onclick="cancelUpload()">✕</button>`;
-  }
+  if(isVideo){prev.innerHTML=`<div class="up-thumb-vid">🎬</div><span class="up-name">${esc(file.name)}</span><button class="up-cancel" onclick="cancelUpload()">✕</button>`;}
+  else{prev.innerHTML=`<img class="up-thumb" src="${esc(localUrl)}"/><span class="up-name">${esc(file.name)}</span><button class="up-cancel" onclick="cancelUpload()">✕</button>`;}
   inp.value='';
 }
 function cancelUpload(){
@@ -907,8 +871,10 @@ function closeProfileEdit(){document.getElementById('profileedit-modal').classLi
    BLOCKED
 ══════════════════════════════════════════════════ */
 async function loadBlockedList(){
-  const{data}=await db.from('dsn_blocked').select('*').eq('blocker_id',me.id);
-  blockedList=data||[];renderBlockedTab().catch(()=>{});
+  const{data,error}=await db.from('dsn_blocked').select('*').eq('blocker_id',me.id);
+  if(error){console.error('loadBlockedList error:',error);blockedList=[];return;}
+  blockedList=data||[];
+  renderBlockedTab().catch(()=>{});
 }
 const isBlocked=id=>blockedList.some(b=>b.blocked_id===id);
 async function theyBlockedMe(uid){
@@ -952,10 +918,13 @@ function refreshBlockUI(){
    ALL USERS
 ══════════════════════════════════════════════════ */
 async function loadAllUsers(){
-  const{data}=await db.from('dsn_users')
+  const{data,error}=await db.from('dsn_users')
     .select('id,username,real_name,grade,avatar_url,public_key')
     .neq('id',me.id).order('username');
-  allUsers=data||[];renderPeople(allUsers);
+  if(error){console.error('loadAllUsers error:',error);return;}
+  allUsers=data||[];
+  dbg(`Loaded ${allUsers.length} users`);
+  renderPeople(allUsers);
 }
 function renderPeople(list){
   const el=document.getElementById('people-list');
@@ -970,10 +939,10 @@ function renderPeople(list){
       </div>`;
     }).join('');
 }
-const filterPeople=debounce(function(){
+function filterPeople(){
   const q=document.getElementById('search-inp').value.trim().toLowerCase();
   renderPeople(q?allUsers.filter(u=>u.username.toLowerCase().includes(q)||(u.real_name||'').toLowerCase().includes(q)):allUsers);
-},150);
+}
 
 /* ══════════════════════════════════════════════════
    TABS
@@ -988,84 +957,163 @@ function switchTab(name){
 }
 
 /* ══════════════════════════════════════════════════
-   CONVERSATIONS
+   CONVERSATIONS — REBUILT ROBUST VERSION
+   Lädt DMs + Gruppen getrennt, zeigt alles an
 ══════════════════════════════════════════════════ */
 async function loadConversations(){
   if(!me)return;
-  let dmConvs=[],grpConvs=[];
-  try{
-    const[{data:sent},{data:recv}]=await Promise.all([
-      db.from('dsn_messages').select('to_id,from_id,content,created_at').eq('from_id',me.id).order('created_at',{ascending:false}),
-      db.from('dsn_messages').select('from_id,to_id,content,created_at,read').eq('to_id',me.id).order('created_at',{ascending:false})
-    ]);
-    const dmIds=new Set();
-    (sent||[]).forEach(m=>m.to_id&&dmIds.add(m.to_id));
-    (recv||[]).forEach(m=>m.from_id&&dmIds.add(m.from_id));
-    if(dmIds.size){
-      const{data:users}=await db.from('dsn_users').select('id,username,real_name,grade,avatar_url,public_key').in('id',[...dmIds]);
-      const umap={};(users||[]).forEach(u=>umap[u.id]=u);
-      const unreadMap={};
-      (recv||[]).filter(m=>!m.read).forEach(m=>{unreadMap[m.from_id]=(unreadMap[m.from_id]||0)+1;});
-      for(const uid of dmIds){
-        const u=umap[uid];if(!u)continue;
-        const allM=[...(sent||[]).filter(m=>m.to_id===uid),...(recv||[]).filter(m=>m.from_id===uid)]
-          .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
-        const last=allM[0];
-        let preview='';
-        if(last){
-          const raw=last.content||'',fromMe=last.from_id===me.id,prefix=fromMe?'Du: ':'';
-          if(raw.startsWith('IMAGE:'))preview=prefix+'📷 Foto';
-          else if(raw.startsWith('VIDEO:'))preview=prefix+'🎬 Video';
-          else if(myPriv&&u.public_key&&raw.includes('.')){
-            try{const dec=await decMsg(myPriv,u.public_key,raw);if(dec.startsWith('IMAGE:'))preview=prefix+'📷 Foto';else if(dec.startsWith('VIDEO:'))preview=prefix+'🎬 Video';else preview=prefix+dec.slice(0,42);}
-            catch{preview='🔒 Verschlüsselt';}
-          }else preview=prefix+(raw.startsWith('E2E.')?'🔒 Verschlüsselt':raw.slice(0,42));
-        }
-        dmConvs.push({type:'dm',user:u,last,unread:unreadMap[uid]||0,preview,ts:last?.created_at||''});
-      }
-    }
-  }catch(e){console.error('DM conv:',e);}
-  try{
-    const{data:memberRows}=await db.from('dsn_group_members').select('group_id').eq('user_id',me.id);
-    if(memberRows?.length){
-      const groupIds=memberRows.map(r=>r.group_id);
-      const{data:groups}=await db.from('dsn_groups').select('*').in('id',groupIds).order('updated_at',{ascending:false});
-      for(const g of groups||[]){
-        let preview='';
-        if(g.last_message){if(g.last_message.startsWith('IMAGE:'))preview='📷 Foto';else if(g.last_message.startsWith('VIDEO:'))preview='🎬 Video';else preview=g.last_message.slice(0,42);}
-        grpConvs.push({type:'group',group:g,unread:0,preview,ts:g.updated_at||g.created_at||''});
-      }
-    }
-  }catch(e){console.warn('Group convs:',e.message);}
-  const all=[...dmConvs,...grpConvs].sort((a,b)=>new Date(b.ts)-new Date(a.ts));
   const el=document.getElementById('conv-list');
-  if(!all.length){el.innerHTML=`<div class="empty-list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><p>Noch keine Chats</p></div>`;return;}
-  el.innerHTML=all.map(c=>{
-    const cnt=c.unread||0,badge=cnt?`<div class="ubadge">${cnt}</div>`:'',time=c.ts?fmtTime(c.ts):'';
-    if(c.type==='dm'){
-      const u=c.user,active=(currentChat?.type==='dm'&&currentChat?.partner?.id===u.id)?' active':'';
-      return`<div class="ci${active}" onclick="openDM('${esc(u.id)}')">
-        <div class="av-wrap">${avHtml(u,'av-sm')}<div class="online-dot ${onlineUsers.has(u.id)?'visible':''}"></div></div>
-        <div class="ci-info"><div class="ci-name">${esc(u.username)}</div><div class="ci-preview${cnt?' unread':''}">${esc(c.preview||'')}</div></div>
-        <div class="ci-meta"><span class="ci-time">${time}</span>${badge}</div>
-      </div>`;
-    }else{
-      const g=c.group,active=(currentChat?.type==='group'&&currentChat?.group?.id===g.id)?' active':'';
-      return`<div class="ci${active}" onclick="openGroupChat('${esc(g.id)}')">
-        <div class="av-wrap">${groupAvHtml('av-sm')}</div>
-        <div class="ci-info"><div class="ci-name">${esc(g.name)}</div><div class="ci-preview${cnt?' unread':''}">${esc(c.preview||'')}</div></div>
-        <div class="ci-meta"><span class="ci-time">${time}</span>${badge}</div>
-      </div>`;
+
+  try{
+    // ── DMs: alle Nachrichten von/an mich laden ──
+    const[{data:sent,error:eS},{data:recv,error:eR}]=await Promise.all([
+      db.from('dsn_messages').select('id,to_id,from_id,content,created_at').eq('from_id',me.id).order('created_at',{ascending:false}).limit(500),
+      db.from('dsn_messages').select('id,from_id,to_id,content,created_at,read').eq('to_id',me.id).order('created_at',{ascending:false}).limit(500)
+    ]);
+
+    if(eS)dbg('sent error: '+JSON.stringify(eS));
+    if(eR)dbg('recv error: '+JSON.stringify(eR));
+
+    // Alle Partner-IDs sammeln
+    const dmPartnerIds=new Set();
+    (sent||[]).forEach(m=>{if(m.to_id)dmPartnerIds.add(m.to_id);});
+    (recv||[]).forEach(m=>{if(m.from_id)dmPartnerIds.add(m.from_id);});
+
+    dbg(`DM partner IDs: ${[...dmPartnerIds].length}`);
+
+    // User-Daten für alle Partner holen
+    const umap={};
+    if(dmPartnerIds.size>0){
+      const{data:udata,error:eU}=await db.from('dsn_users')
+        .select('id,username,real_name,grade,avatar_url,public_key')
+        .in('id',[...dmPartnerIds]);
+      if(eU)dbg('udata error: '+JSON.stringify(eU));
+      (udata||[]).forEach(u=>umap[u.id]=u);
     }
-  }).join('');
+
+    // Unread counts
+    const unreadMap={};
+    (recv||[]).filter(m=>!m.read).forEach(m=>{unreadMap[m.from_id]=(unreadMap[m.from_id]||0)+1;});
+
+    // Pro Partner letztes Timestamp + Preview
+    const dmMap=new Map();
+    const allDmMsgs=[...(sent||[]),...(recv||[])];
+    for(const m of allDmMsgs){
+      const partnerId=m.from_id===me.id?m.to_id:m.from_id;
+      if(!partnerId||partnerId===me.id)continue;
+      const existing=dmMap.get(partnerId);
+      if(!existing||new Date(m.created_at)>new Date(existing.ts)){
+        let preview='';
+        const raw=m.content||'';
+        const fromMe=m.from_id===me.id;
+        const prefix=fromMe?'Du: ':'';
+        if(raw.startsWith('IMAGE:'))preview=prefix+'📷 Foto';
+        else if(raw.startsWith('VIDEO:'))preview=prefix+'🎬 Video';
+        else if(raw.startsWith('E2E.')||raw.includes('.')){
+          // Versuche zu entschlüsseln — bei Fehler Fallback
+          const partner=umap[partnerId];
+          if(myPriv&&partner?.public_key){
+            try{
+              const dec=await decMsg(myPriv,partner.public_key,raw);
+              if(dec.startsWith('IMAGE:'))preview=prefix+'📷 Foto';
+              else if(dec.startsWith('VIDEO:'))preview=prefix+'🎬 Video';
+              else preview=prefix+dec.slice(0,45);
+            }catch{preview=prefix+'🔒 Verschlüsselt';}
+          }else{preview=prefix+'🔒 Verschlüsselt';}
+        }else{preview=prefix+raw.slice(0,45);}
+        dmMap.set(partnerId,{ts:m.created_at,preview});
+      }
+    }
+
+    // DM-Konversationen bauen — AUCH User ohne Nachrichten
+    // sind hier nicht nötig, aber alle die je geschrieben haben
+    const dmConvs=[];
+    for(const[uid,info]of dmMap){
+      const u=umap[uid];
+      if(!u){dbg('User nicht gefunden für id '+uid);continue;}
+      dmConvs.push({
+        type:'dm',user:u,
+        ts:info.ts,preview:info.preview,
+        unread:unreadMap[uid]||0
+      });
+    }
+
+    // ── GRUPPEN ──
+    const grpConvs=[];
+    try{
+      const{data:memberRows,error:eM}=await db.from('dsn_group_members').select('group_id').eq('user_id',me.id);
+      if(eM)dbg('group_members error: '+JSON.stringify(eM));
+      if(memberRows?.length){
+        const groupIds=memberRows.map(r=>r.group_id);
+        const{data:groups,error:eG}=await db.from('dsn_groups').select('*').in('id',groupIds).order('updated_at',{ascending:false});
+        if(eG)dbg('groups error: '+JSON.stringify(eG));
+        for(const g of groups||[]){
+          let preview='';
+          if(g.last_message){
+            if(g.last_message.startsWith('IMAGE:'))preview='📷 Foto';
+            else if(g.last_message.startsWith('VIDEO:'))preview='🎬 Video';
+            else preview=g.last_message.slice(0,45);
+          }
+          grpConvs.push({type:'group',group:g,unread:0,preview,ts:g.updated_at||g.created_at||''});
+        }
+      }
+    }catch(e){dbg('group conv error: '+e.message);}
+
+    // ── SORTIEREN & RENDERN ──
+    const all=[...dmConvs,...grpConvs].sort((a,b)=>new Date(b.ts)-new Date(a.ts));
+
+    dbg(`Conversations: ${dmConvs.length} DMs, ${grpConvs.length} Gruppen`);
+
+    if(!all.length){
+      el.innerHTML=`<div class="empty-list">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <p>Noch keine Chats</p>
+        <p style="font-size:11px;margin-top:4px">Schreib jemandem im Tab "Personen"</p>
+      </div>`;
+      return;
+    }
+
+    el.innerHTML=all.map(c=>{
+      const cnt=c.unread||0;
+      const badge=cnt?`<div class="ubadge">${cnt>99?'99+':cnt}</div>`:'';
+      const time=c.ts?fmtTime(c.ts):'';
+      if(c.type==='dm'){
+        const u=c.user;
+        const active=(currentChat?.type==='dm'&&currentChat?.partner?.id===u.id)?' active':'';
+        return`<div class="ci${active}" onclick="openDM('${esc(u.id)}')">
+          <div class="av-wrap">${avHtml(u,'av-sm')}<div class="online-dot ${onlineUsers.has(u.id)?'visible':''}"></div></div>
+          <div class="ci-info">
+            <div class="ci-name">${esc(u.username)}</div>
+            <div class="ci-preview${cnt?' unread':''}">${esc(c.preview||'')}</div>
+          </div>
+          <div class="ci-meta"><span class="ci-time">${esc(time)}</span>${badge}</div>
+        </div>`;
+      }else{
+        const g=c.group;
+        const active=(currentChat?.type==='group'&&currentChat?.group?.id===g.id)?' active':'';
+        return`<div class="ci${active}" onclick="openGroupChat('${esc(g.id)}')">
+          <div class="av-wrap">${groupAvHtml('av-sm')}</div>
+          <div class="ci-info">
+            <div class="ci-name">${esc(g.name)}</div>
+            <div class="ci-preview${cnt?' unread':''}">${esc(c.preview||'')}</div>
+          </div>
+          <div class="ci-meta"><span class="ci-time">${esc(time)}</span>${badge}</div>
+        </div>`;
+      }
+    }).join('');
+
+  }catch(e){
+    console.error('loadConversations FEHLER:',e);
+    el.innerHTML=`<div class="empty-list"><p style="color:var(--danger)">Fehler beim Laden: ${esc(e.message)}</p></div>`;
+  }
 }
 
 /* ══════════════════════════════════════════════════
    OPEN DM
 ══════════════════════════════════════════════════ */
 async function openDM(uid){
-  const{data:u}=await db.from('dsn_users').select('id,username,real_name,grade,avatar_url,public_key,created_at').eq('id',uid).maybeSingle();
-  if(!u){notify('User nicht gefunden','danger');return;}
+  const{data:u,error}=await db.from('dsn_users').select('id,username,real_name,grade,avatar_url,public_key,created_at').eq('id',uid).maybeSingle();
+  if(error||!u){notify('User nicht gefunden','danger');return;}
   currentChat={type:'dm',partner:u};
   clearInterval(pollTm);setupChatView();
   const chatAv=document.getElementById('chat-av');
@@ -1136,8 +1184,8 @@ function renderProfPanel(){
     const u=currentChat.partner;if(!u){body.innerHTML='';return;}
     const online=onlineUsers.has(u.id);
     titleEl.textContent='Profil';
-    const avDiv=document.createElement('div');avDiv.style.display='flex';avDiv.style.justifyContent='center';
-    const avEl=makeAvEl(u,'prof-av-lg');avEl.style.margin='0 auto';avDiv.appendChild(avEl);
+    const avDiv=document.createElement('div');avDiv.style.cssText='display:flex;justify-content:center';
+    const avEl=makeAvEl(u,'av-lg');avEl.style.margin='0 auto';avDiv.appendChild(avEl);
     body.innerHTML=`<div id="prof-av-slot"></div>
       <div><div class="prof-name">${esc(u.username||'')}</div><div class="prof-user">@${esc(u.username||'')}</div>${online?`<div class="prof-online-status">● Online</div>`:''}</div>
       <div class="prof-stats">
@@ -1158,7 +1206,7 @@ function renderProfPanel(){
       return`<div class="member-row"><div class="member-av" style="background:${avCol(m.username)}">${avC}</div><div class="member-name">${esc(m.username)}</div>${isAdm?`<span class="member-badge">Admin</span>`:''}${kickBtn}</div>`;
     }).join('');
     body.innerHTML=`
-      <div style="display:flex;justify-content:center"><div class="prof-av-lg" style="background:#7c3aed;font-size:26px">👥</div></div>
+      <div style="display:flex;justify-content:center"><div class="av av-lg" style="background:#7c3aed;font-size:26px">👥</div></div>
       <div><div class="prof-name">${esc(g.name)}</div><div class="prof-user">${esc(String(g.members.length))} Mitglieder</div></div>
       <div class="prof-div"></div>
       <div style="font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Mitglieder</div>
@@ -1278,7 +1326,6 @@ function renderMsgRow(area,m,plain,isOut,gc,initial,sn,sender){
   }else{
     const b=document.createElement('div');b.className=`bubble ${isOut?'out':'in'}`;
     b.textContent=plain;
-    b.innerHTML=b.innerHTML.replace(/\n/g,'<br>');
     if(showTime){const ts2=document.createElement('span');ts2.className='b-time';ts2.textContent=ts;b.appendChild(ts2);}
     bw.appendChild(b);
   }
