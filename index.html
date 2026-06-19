@@ -36,7 +36,7 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
-body { font-family: var(--sans); background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; position: relative; }
 
 /* SCROLLBAR */
 ::-webkit-scrollbar { width: 5px; }
@@ -46,7 +46,14 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); font
 /* ── LAYOUT ── */
 #app { display: flex; height: 100vh; }
 #sidebar { width: var(--sidebar-w); flex-shrink: 0; display: flex; flex-direction: column; background: var(--surface); border-right: 1px solid var(--border); }
-#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+
+/* VERSION TAG */
+.version-tag {
+  position: absolute; bottom: 4px; right: 8px;
+  font-family: var(--mono); font-size: 10px; color: var(--text-3);
+  opacity: 0.6; pointer-events: none; z-index: 1000;
+}
 
 /* ── AUTH SCREEN ── */
 #authScreen {
@@ -91,34 +98,6 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); font
 .auth-err { font-size: 12px; color: var(--danger); margin-top: 10px; min-height: 16px; }
 .auth-switch { text-align: center; margin-top: 16px; font-size: 13px; color: var(--text-2); }
 .auth-switch a { color: var(--accent); text-decoration: none; font-weight: 500; cursor: pointer; }
-
-/* KEY SETUP SCREEN */
-#keySetupScreen {
-  position: fixed; inset: 0; background: rgba(248,248,247,.95);
-  backdrop-filter: blur(6px); z-index: 99;
-  display: flex; align-items: center; justify-content: center;
-}
-.key-card {
-  width: 100%; max-width: 440px; background: var(--surface);
-  border: 1px solid var(--border); border-radius: var(--radius);
-  box-shadow: var(--shadow-m); padding: 36px; text-align: center;
-}
-.key-icon { font-size: 40px; margin-bottom: 16px; }
-.key-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
-.key-desc { font-size: 13px; color: var(--text-2); line-height: 1.6; margin-bottom: 24px; }
-.key-recovery { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-s); padding: 14px; margin-bottom: 20px; }
-.key-recovery-label { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
-.key-recovery-code { font-family: var(--mono); font-size: 12px; color: var(--text); word-break: break-all; line-height: 1.6; }
-.key-warn { font-size: 12px; color: var(--warn); margin-bottom: 20px; font-weight: 500; }
-.btn-row { display: flex; gap: 8px; }
-.btn-secondary {
-  flex: 1; padding: 10px; background: var(--surface2); color: var(--text);
-  border: 1px solid var(--border); border-radius: var(--radius-s);
-  font-family: var(--sans); font-size: 14px; font-weight: 500; cursor: pointer;
-  transition: background .15s;
-}
-.btn-secondary:hover { background: var(--border); }
-.btn-primary.flex1 { flex: 1; width: auto; }
 
 /* ── SIDEBAR HEADER ── */
 .sb-header {
@@ -199,17 +178,6 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); font
 .conv-preview { font-size: 12px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .conv-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
 .conv-time { font-size: 11px; color: var(--text-3); font-family: var(--mono); }
-.unread-badge {
-  background: var(--accent); color: #fff; border-radius: 10px;
-  font-size: 10px; font-weight: 700; padding: 1px 5px; min-width: 16px; text-align: center;
-}
-.section-label {
-  font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase;
-  letter-spacing: .5px; padding: 12px 10px 5px;
-}
-.empty-state { text-align: center; padding: 32px 16px; color: var(--text-3); }
-.empty-state svg { width: 36px; height: 36px; margin: 0 auto 10px; display: block; opacity: .4; }
-.empty-state p { font-size: 13px; }
 
 /* REQUEST ITEM */
 .req-item {
@@ -271,12 +239,6 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); font
 .chat-header-info { flex: 1; min-width: 0; }
 .chat-header-name { font-size: 15px; font-weight: 600; letter-spacing: -.2px; }
 .chat-header-status { font-size: 12px; color: var(--text-3); }
-.e2ee-badge {
-  display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500;
-  color: var(--success); background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.2);
-  border-radius: 6px; padding: 3px 8px;
-}
-.e2ee-badge svg { width: 12px; height: 12px; }
 
 /* MESSAGES */
 #messagesArea {
@@ -295,7 +257,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); font
 }
 
 /* MESSAGE ROW */
-.msg-row { display: flex; align-items: flex-end; gap: 8px; max-width: 100%; }
+.msg-row { display: flex; align-items: flex-end; gap: 8px; max-width: 100%; position: relative; }
 .msg-row.me { flex-direction: row-reverse; }
 .msg-row.me .avatar-sm { display: none; }
 .avatar-sm {
@@ -322,7 +284,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); font
   font-size: 14px; line-height: 1.45; word-break: break-word;
   box-shadow: var(--shadow);
   animation: bubble-in .2s cubic-bezier(.34,1.56,.64,1) both;
-  position: relative; cursor: pointer;
+  cursor: pointer; position: relative;
 }
 .msg-row.me .bubble { background: var(--bubble-me); color: #fff; border-bottom-right-radius: 4px; }
 .msg-row.them .bubble { background: var(--bubble-th); color: var(--text); border-bottom-left-radius: 4px; border: 1px solid var(--border); }
@@ -333,7 +295,6 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); font
 }
 
 .bubble.deleted { font-style: italic; opacity: .5; font-size: 13px; }
-.bubble.self-destruct { border: 1px dashed var(--warn); }
 
 /* Context menu */
 .bubble-menu {
@@ -360,7 +321,6 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); font
 }
 .msg-row.me .msg-meta { justify-content: flex-end; }
 .edited-tag { color: var(--text-3); font-style: italic; }
-.burn-timer { color: var(--warn); font-weight: 600; }
 
 /* Typing indicator */
 .typing-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
@@ -438,31 +398,6 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); font
 .modal-btns { display: flex; gap: 8px; margin-top: 18px; }
 .modal-info { font-size: 12px; color: var(--text-3); margin-top: 10px; }
 
-/* VOICE PLAYER */
-.voice-msg {
-  display: flex; align-items: center; gap: 10px; padding: 8px 12px;
-  background: inherit; min-width: 200px;
-}
-.voice-play {
-  width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px; flex-shrink: 0; transition: transform .1s;
-}
-.msg-row.me .voice-play { background: rgba(255,255,255,.2); color: #fff; }
-.msg-row.them .voice-play { background: var(--accent-s); color: var(--accent); }
-.voice-play:active { transform: scale(.9); }
-.voice-waveform { flex: 1; height: 24px; position: relative; cursor: pointer; }
-.voice-track { width: 100%; height: 3px; background: rgba(0,0,0,.12); border-radius: 2px; position: absolute; top: 50%; transform: translateY(-50%); }
-.msg-row.me .voice-track { background: rgba(255,255,255,.3); }
-.voice-progress { height: 100%; background: currentColor; border-radius: 2px; transition: width .1s linear; }
-.voice-speed {
-  font-family: var(--mono); font-size: 10px; font-weight: 600;
-  padding: 2px 5px; border-radius: 4px; cursor: pointer; border: none;
-}
-.msg-row.me .voice-speed { background: rgba(255,255,255,.2); color: rgba(255,255,255,.9); }
-.msg-row.them .voice-speed { background: var(--surface2); color: var(--text-2); }
-.voice-dur { font-family: var(--mono); font-size: 10px; opacity: .6; }
-
 /* MEDIA MODAL */
 #mediaModal { display: none; }
 #mediaModal .modal-card { max-width: 640px; padding: 16px; }
@@ -519,11 +454,6 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); font
 
 /* MISC */
 .hidden { display: none !important; }
-.chip {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 11px; font-weight: 600; padding: 2px 8px;
-  border-radius: 6px; background: var(--surface2); color: var(--text-2);
-}
 input[type=file] { display: none; }
 </style>
 </head>
@@ -564,34 +494,6 @@ input[type=file] { display: none; }
       <div class="auth-err" id="regErr"></div>
       <button class="btn-primary" id="regBtn" onclick="doRegister()">Account erstellen</button>
       <div class="auth-switch"><a onclick="showLogin()">← Zurück zum Login</a></div>
-    </div>
-  </div>
-</div>
-
-<!-- KEY SETUP -->
-<div id="keySetupScreen" class="hidden">
-  <div class="key-card">
-    <div class="key-icon">🔑</div>
-    <div class="key-title">Ende-zu-Ende-Verschlüsselung</div>
-    <div class="key-desc">Deine Nachrichten werden mit deinem Gerät verschlüsselt. Nur du und dein Gesprächspartner können sie lesen — nicht einmal der Server.</div>
-    <div id="keyRecoverySection">
-      <div class="key-recovery">
-        <div class="key-recovery-label">Dein Recovery-Code (einmalig speichern)</div>
-        <div class="key-recovery-code" id="recoveryCodeDisplay"></div>
-      </div>
-      <div class="key-warn">⚠ Speicher diesen Code sicher — du brauchst ihn auf neuen Geräten.</div>
-      <div class="btn-row">
-        <button class="btn-secondary" onclick="copyRecovery()">Code kopieren</button>
-        <button class="btn-primary flex1" onclick="confirmKeySetup()">Verstanden, weiter →</button>
-      </div>
-    </div>
-    <div id="keyRecoverSection" class="hidden">
-      <div class="field"><label>RECOVERY CODE</label><input id="recoveryInput" type="text" placeholder="dein Recovery-Code…" class="modal-input"/></div>
-      <div class="auth-err" id="recoverErr"></div>
-      <div class="btn-row" style="margin-top:16px;">
-        <button class="btn-secondary" onclick="skipRecover()">Neu generieren</button>
-        <button class="btn-primary flex1" onclick="doRecover()">Wiederherstellen</button>
-      </div>
     </div>
   </div>
 </div>
@@ -665,10 +567,6 @@ input[type=file] { display: none; }
           <div class="chat-header-name" id="chatName">–</div>
           <div class="chat-header-status" id="chatStatus">–</div>
         </div>
-        <div class="e2ee-badge">
-          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path stroke-linecap="round" d="M7 11V7a5 5 0 0110 0v4"/></svg>
-          E2EE
-        </div>
       </div>
       <div id="messagesArea"></div>
       <div id="typingArea" class="hidden" style="padding:0 20px 4px;">
@@ -710,6 +608,7 @@ input[type=file] { display: none; }
 
     <!-- Blocked -->
     <div id="blockedBar" class="blocked-bar hidden">Diese Konversation wurde abgelehnt.</div>
+    <div class="version-tag">Beta V1.2</div>
   </div>
 </div>
 
@@ -743,59 +642,14 @@ const SUPABASE_URL  = 'https://sigjwzivusuzmhvixtbm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpZ2p3eml2dXN1em1odml4dGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNTI3MDksImV4cCI6MjA4ODcyODcwOX0.j0yB-NYM5HOkfKVBz24rWMBQNF8w-uEFjX55UGeD30E';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-/* ══════════════ CRYPTO (ECDH + AES-GCM) ══════════════ */
-const PRIV_KEY = 'dsn_chat_privkey';
-const PUB_KEY  = 'dsn_chat_pubkey';
-const RECOVERY = 'dsn_chat_recovery';
-
-async function genKeyPair() {
-  const kp = await crypto.subtle.generateKey({ name:'ECDH', namedCurve:'P-256' }, true, ['deriveKey']);
-  const pub = await crypto.subtle.exportKey('spki', kp.publicKey);
-  const prv = await crypto.subtle.exportKey('pkcs8', kp.privateKey);
-  return { pub: ab2b64(pub), prv: ab2b64(prv) };
-}
-async function importPub(b64) {
-  return crypto.subtle.importKey('spki', b64ab(b64), { name:'ECDH', namedCurve:'P-256' }, false, []);
-}
-async function importPriv(b64) {
-  return crypto.subtle.importKey('pkcs8', b64ab(b64), { name:'ECDH', namedCurve:'P-256' }, false, ['deriveKey']);
-}
-async function deriveShared(myPrivB64, theirPubB64) {
-  const myPriv   = await importPriv(myPrivB64);
-  const theirPub = await importPub(theirPubB64);
-  return crypto.subtle.deriveKey(
-    { name:'ECDH', public: theirPub },
-    myPriv,
-    { name:'AES-GCM', length: 256 },
-    false, ['encrypt','decrypt']
-  );
-}
-async function encrypt(text, sharedKey) {
-  const iv  = crypto.getRandomValues(new Uint8Array(12));
-  const enc = new TextEncoder();
-  const ct  = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, sharedKey, enc.encode(text));
-  return ab2b64(iv) + '.' + ab2b64(ct);
-}
-async function decrypt(payload, sharedKey) {
-  try {
-    const [ivB64, ctB64] = payload.split('.');
-    const pt = await crypto.subtle.decrypt({ name:'AES-GCM', iv: b64ab(ivB64) }, sharedKey, b64ab(ctB64));
-    return new TextDecoder().decode(pt);
-  } catch { return '[Entschlüsselung fehlgeschlagen]'; }
-}
-function ab2b64(ab) { return btoa(String.fromCharCode(...new Uint8Array(ab))); }
-function b64ab(b64) { const b = atob(b64); const a = new Uint8Array(b.length); for(let i=0;i<b.length;i++) a[i]=b.charCodeAt(i); return a.buffer; }
-function genRecoveryCode(privB64) { return btoa('DSN_RECOVER:' + privB64).replace(/=/g,''); }
-function parseRecoveryCode(code) { try { const d = atob(code + '=='); if(!d.startsWith('DSN_RECOVER:')) return null; return d.slice(12); } catch { return null; } }
-
 /* ══════════════ HELPERS ══════════════ */
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function initials(name) { return (name||'?').slice(0,2).toUpperCase(); }
 function fmtTime(iso) {
+  if (!iso) return '';
   const d = new Date(iso);
   const now = new Date();
-  const same = d.toDateString() === now.toDateString();
-  if(same) return d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+  if(d.toDateString() === now.toDateString()) return d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
   return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
 }
 function fmtDate(iso) {
@@ -812,7 +666,7 @@ function genColor(name) {
   return colors[Math.abs(h)%colors.length];
 }
 
-/* ══════════════ PBKDF2 (re-use DSN pw hashing) ══════════════ */
+/* ══════════════ HASHING ══════════════ */
 function genSalt(){const b=new Uint8Array(32);crypto.getRandomValues(b);return Array.from(b).map(x=>x.toString(16).padStart(2,'0')).join('');}
 async function hashPw(pw,saltHex){
   const enc=new TextEncoder(),salt=new Uint8Array(saltHex.match(/.{2}/g).map(h=>parseInt(h,16)));
@@ -823,14 +677,11 @@ async function hashPw(pw,saltHex){
 
 /* ══════════════ STATE ══════════════ */
 let currentUser = null;
-let myPrivKey   = null;
-let myPubKey    = null;
 let conversations   = [];
 let requests        = [];
 let allUsers        = [];
 let currentConvId   = null;
 let currentConv     = null;
-let sharedKeyCache  = {};
 let realtimeChannel = null;
 let presenceChannel = null;
 let typingTimer     = null;
@@ -842,7 +693,6 @@ let editingMsg      = null;
 let pendingMedia    = null;
 let pendingTargetUser = null;
 
-// Rate limiting
 const RATE_WINDOW = 1000, RATE_MAX = 5;
 let msgTimestamps = [];
 
@@ -877,7 +727,7 @@ async function doLogin() {
     const { data: u } = await db.rpc('dsn_login', { p_username: user, p_password_hash: hash });
     if(!u) { document.getElementById('loginErr').textContent = 'Falsches Passwort.'; return; }
     currentUser = u;
-    await initKeys();
+    launchApp();
   } catch(e) { document.getElementById('loginErr').textContent = 'Fehler: ' + e.message; }
   finally { btn.disabled = false; btn.textContent = 'Einloggen'; }
 }
@@ -907,102 +757,18 @@ async function doRegister() {
 function doLogout() {
   if(realtimeChannel) realtimeChannel.unsubscribe();
   if(presenceChannel) presenceChannel.unsubscribe();
-  currentUser=null; myPrivKey=null; myPubKey=null;
+  currentUser=null;
+  currentConvId=null;
+  currentConv=null;
   document.getElementById('app').classList.add('hidden');
   document.getElementById('authScreen').classList.remove('hidden');
-}
-
-/* ══════════════ KEY MANAGEMENT ══════════════ */
-let generatedKeys = null;
-
-async function initKeys() {
-  const storedPriv = localStorage.getItem(PRIV_KEY + '_' + currentUser.id);
-  if(storedPriv) {
-    myPrivKey = storedPriv;
-    myPubKey  = localStorage.getItem(PUB_KEY + '_' + currentUser.id);
-    // Ensure pub key is in DB
-    await db.from('dsn_users').update({ public_key: myPubKey }).eq('id', currentUser.id);
-    launchApp();
-    return;
-  }
-  // Check if they have a pub key in DB (means they had keys before, need recovery)
-  const { data: existing } = await db.from('dsn_users').select('public_key').eq('id', currentUser.id).single();
-  if(existing?.public_key) {
-    // Show recovery screen
-    document.getElementById('keyRecoverySection').classList.add('hidden');
-    document.getElementById('keyRecoverSection').classList.remove('hidden');
-    document.getElementById('authScreen').classList.add('hidden');
-    document.getElementById('keySetupScreen').classList.remove('hidden');
-    return;
-  }
-  // Generate new keys
-  generatedKeys = await genKeyPair();
-  const recovery = genRecoveryCode(generatedKeys.prv);
-  localStorage.setItem(RECOVERY + '_' + currentUser.id, recovery);
-  document.getElementById('recoveryCodeDisplay').textContent = recovery;
-  document.getElementById('keyRecoverySection').classList.remove('hidden');
-  document.getElementById('keyRecoverSection').classList.add('hidden');
-  document.getElementById('authScreen').classList.add('hidden');
-  document.getElementById('keySetupScreen').classList.remove('hidden');
-}
-
-function copyRecovery() {
-  const code = document.getElementById('recoveryCodeDisplay').textContent;
-  navigator.clipboard.writeText(code).catch(()=>{});
-}
-
-async function confirmKeySetup() {
-  if(!generatedKeys) return;
-  myPrivKey = generatedKeys.prv;
-  myPubKey  = generatedKeys.pub;
-  localStorage.setItem(PRIV_KEY + '_' + currentUser.id, myPrivKey);
-  localStorage.setItem(PUB_KEY + '_' + currentUser.id, myPubKey);
-  await db.from('dsn_users').update({ public_key: myPubKey }).eq('id', currentUser.id);
-  document.getElementById('keySetupScreen').classList.add('hidden');
-  launchApp();
-}
-
-async function doRecover() {
-  const code = document.getElementById('recoveryInput').value.trim();
-  const prv = parseRecoveryCode(code);
-  if(!prv) { document.getElementById('recoverErr').textContent='Ungültiger Code.'; return; }
-  try {
-    const privKey = await importPriv(prv);
-    // Derive pub
-    const kp = await crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'}, true, ['deriveKey']);
-    // We can't re-derive pub from priv with WebCrypto, so we trust the stored DB pub
-    const { data: u } = await db.from('dsn_users').select('public_key').eq('id', currentUser.id).single();
-    myPrivKey = prv;
-    myPubKey  = u.public_key;
-    localStorage.setItem(PRIV_KEY + '_' + currentUser.id, myPrivKey);
-    localStorage.setItem(PUB_KEY + '_' + currentUser.id, myPubKey);
-    document.getElementById('keySetupScreen').classList.add('hidden');
-    launchApp();
-  } catch(e) { document.getElementById('recoverErr').textContent='Fehler beim Wiederherstellen: '+e.message; }
-}
-
-function skipRecover() {
-  // Generate fresh keys (lose encrypted history)
-  generatedKeys = null;
-  document.getElementById('keyRecoverSection').classList.add('hidden');
-  // Re-init with fresh keys
-  currentUser._skipRecover = true;
-  db.from('dsn_users').update({ public_key: null }).eq('id', currentUser.id).then(async()=>{
-    generatedKeys = await genKeyPair();
-    const recovery = genRecoveryCode(generatedKeys.prv);
-    document.getElementById('recoveryCodeDisplay').textContent = recovery;
-    document.getElementById('keyRecoverySection').classList.remove('hidden');
-  });
 }
 
 /* ══════════════ APP INIT ══════════════ */
 async function launchApp() {
   document.getElementById('authScreen').classList.add('hidden');
-  document.getElementById('keySetupScreen').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
 
-  // Sidebar user info
-  const dispName = currentUser.real_name || currentUser.username;
   document.getElementById('myName').textContent = currentUser.username;
   document.getElementById('myGrade').textContent = 'Klasse ' + (currentUser.grade||'–');
   const av = document.getElementById('myAvatar');
@@ -1019,7 +785,7 @@ async function launchApp() {
 
 /* ══════════════ LOAD DATA ══════════════ */
 async function loadAllUsers() {
-  const { data } = await db.from('dsn_users').select('id,username,real_name,grade,school,public_key').neq('id', currentUser.id).order('username');
+  const { data } = await db.from('dsn_users').select('id,username,real_name,grade,school').neq('id', currentUser.id).order('username');
   allUsers = data || [];
 }
 
@@ -1031,14 +797,13 @@ async function loadConversations() {
 
   conversations = [];
   requests = [];
+  
   for(const conv of (data||[])) {
     const otherId = conv.user_a_id === currentUser.id ? conv.user_b_id : conv.user_a_id;
     const other = allUsers.find(u => u.id === otherId);
     conv._other = other;
 
     if(conv.status === 'pending' && conv.initiated_by !== currentUser.id) {
-      // This is an incoming request for me
-      // Load the first message preview
       const { data: msgs } = await db.from('dsn_messages').select('content_encrypted,created_at').eq('conversation_id', conv.id).order('created_at').limit(1);
       conv._preview = msgs?.[0] || null;
       requests.push(conv);
@@ -1046,7 +811,6 @@ async function loadConversations() {
       conversations.push(conv);
     }
   }
-
   updateReqBadge();
 }
 
@@ -1085,7 +849,6 @@ function renderSidebar() {
           <span class="conv-time">${conv.last_message_at ? fmtTime(conv.last_message_at) : ''}</span>
         </div>`;
       list.appendChild(item);
-      // Load preview async
       if(conv.status === 'accepted') loadPreview(conv);
     });
 
@@ -1111,12 +874,15 @@ function renderSidebar() {
         </div>
         <div class="req-preview" id="rpreview-${req.id}">…</div>
         <div class="req-actions">
-          <button class="btn-accept" onclick="acceptConv('${req.id}')">✓ Annehmen</button>
-          <button class="btn-decline" onclick="declineConv('${req.id}')">Ablehnen</button>
+          <button class="btn-accept" onclick="event.stopPropagation(); acceptConv('${req.id}')">✓ Annehmen</button>
+          <button class="btn-decline" onclick="event.stopPropagation(); declineConv('${req.id}')">Ablehnen</button>
         </div>`;
       list.appendChild(item);
-      // Decrypt preview
-      decryptPreview(req);
+      
+      const el = document.getElementById('rpreview-' + req.id);
+      if(el && req._preview) {
+        el.textContent = '"' + req._preview.content_encrypted + '"';
+      }
     });
 
   } else if(activeTab === 'contacts') {
@@ -1144,40 +910,13 @@ function renderSidebar() {
   }
 }
 
-async function decryptPreview(req) {
-  if(!req._preview) return;
-  const el = document.getElementById('rpreview-' + req.id);
-  if(!el) return;
-  const other = req._other;
-  if(!other?.public_key || !myPrivKey) { el.textContent = '[Verschlüsselt]'; return; }
-  try {
-    const sk = await getSharedKey(other.id, other.public_key);
-    const pt = await decrypt(req._preview.content_encrypted, sk);
-    el.textContent = '"' + pt + '"';
-  } catch { el.textContent = '[Nachricht]'; }
-}
-
 async function loadPreview(conv) {
   const el = document.getElementById('preview-' + conv.id);
   if(!el) return;
   const { data } = await db.from('dsn_messages').select('content_encrypted,sender_id').eq('conversation_id', conv.id).eq('is_deleted', false).order('created_at', { ascending: false }).limit(1);
   if(!data?.length) { el.textContent = 'Noch keine Nachrichten'; return; }
   const msg = data[0];
-  const other = conv._other;
-  if(!other?.public_key || !myPrivKey) { el.textContent='[Nachricht]'; return; }
-  try {
-    const sk = await getSharedKey(other.id, other.public_key);
-    const pt = await decrypt(msg.content_encrypted, sk);
-    el.textContent = (msg.sender_id === currentUser.id ? 'Du: ' : '') + pt;
-  } catch { el.textContent = '[Nachricht]'; }
-}
-
-/* ══════════════ SHARED KEY CACHE ══════════════ */
-async function getSharedKey(userId, pubKeyB64) {
-  if(sharedKeyCache[userId]) return sharedKeyCache[userId];
-  const sk = await deriveShared(myPrivKey, pubKeyB64);
-  sharedKeyCache[userId] = sk;
-  return sk;
+  el.textContent = (msg.sender_id === currentUser.id ? 'Du: ' : '') + msg.content_encrypted;
 }
 
 /* ══════════════ OPEN CONV ══════════════ */
@@ -1186,13 +925,11 @@ async function openConv(conv) {
   currentConv   = conv;
   const other   = conv._other;
 
-  // Show chat view
   document.getElementById('chatEmpty').classList.add('hidden');
   document.getElementById('pendingOverlay').classList.add('hidden');
   document.getElementById('blockedBar').classList.add('hidden');
 
   if(conv.status === 'pending' && conv.initiated_by === currentUser.id) {
-    // My outgoing request — show pending overlay for me too
     document.getElementById('chatView').classList.add('hidden');
     document.getElementById('pendingOverlay').classList.remove('hidden');
     document.getElementById('pendName').textContent = other?.username || '?';
@@ -1229,9 +966,6 @@ async function openConv(conv) {
 
   await loadMessages(conv);
   renderSidebar();
-
-  // Subscribe to this conversation's realtime
-  subscribeConv(conv.id);
 }
 
 /* ══════════════ PENDING REQUEST VIEW ══════════════ */
@@ -1251,7 +985,7 @@ function openPendingRequest(convId) {
   document.getElementById('pendAvatar').textContent = initials(other?.username);
   document.getElementById('pendAvatar').style.background = color + '22';
   document.getElementById('pendAvatar').style.color = color;
-  // Show preview from sidebar
+  
   const previewEl = document.getElementById('rpreview-' + convId);
   document.getElementById('pendPreview').textContent = previewEl ? previewEl.textContent : '…';
   document.getElementById('pendingOverlay').querySelector('h3').textContent = 'Chat-Anfrage';
@@ -1261,11 +995,11 @@ function openPendingRequest(convId) {
 }
 
 async function acceptRequest() {
-  if(!currentConv) return;
+  if(!currentConvId) return;
   await acceptConv(currentConvId);
 }
 async function declineRequest() {
-  if(!currentConv) return;
+  if(!currentConvId) return;
   await declineConv(currentConvId);
   document.getElementById('pendingOverlay').classList.add('hidden');
   document.getElementById('chatEmpty').classList.remove('hidden');
@@ -1280,18 +1014,23 @@ async function acceptConv(convId) {
     requests = requests.filter(r => r.id !== convId);
     conversations.unshift(conv);
     updateReqBadge();
-    // Animate into chats tab
     switchTab('chats');
-    const el = document.getElementById('req-' + convId);
-    if(el) el.style.animation = 'slide-accept .3s ease both';
     currentConvId = convId; currentConv = conv;
-    setTimeout(() => openConv(conv), 300);
+    setTimeout(() => openConv(conv), 100);
+  } else {
+    await loadConversations();
+    renderSidebar();
   }
 }
 
 async function declineConv(convId) {
   await db.from('dsn_conversations').update({ status: 'blocked' }).eq('id', convId);
   requests = requests.filter(r => r.id !== convId);
+  if(currentConvId === convId) {
+    currentConvId = null; currentConv = null;
+    document.getElementById('chatView').classList.add('hidden');
+    document.getElementById('chatEmpty').classList.remove('hidden');
+  }
   updateReqBadge();
   renderSidebar();
 }
@@ -1305,18 +1044,10 @@ async function loadMessages(conv) {
     .eq('conversation_id', conv.id)
     .order('created_at');
   const msgs = data || [];
-  const other = conv._other;
-  let sharedKey = null;
-  if(other?.public_key && myPrivKey) {
-    sharedKey = await getSharedKey(other.id, other.public_key);
-  }
-  // Decrypt all
+  
   for(const msg of msgs) {
     if(msg.is_deleted) { msg._text = null; continue; }
-    if(sharedKey) {
-      try { msg._text = await decrypt(msg.content_encrypted, sharedKey); }
-      catch { msg._text = '[Entschlüsselung fehlgeschlagen]'; }
-    } else { msg._text = '[Kein Schlüssel]'; }
+    msg._text = msg.content_encrypted;
   }
   renderMessages(msgs, conv);
 }
@@ -1355,13 +1086,11 @@ function buildMsgEl(msg, conv) {
   let bubbleContent = '';
   if(msg.is_deleted) {
     bubbleContent = 'Nachricht gelöscht';
-  } else if(msg.type === 'voice') {
-    bubbleContent = buildVoicePlayer(msg);
   } else if(msg.type === 'media') {
-    const url = msg._text || '';
+    const url = msg._text || msg.content_encrypted || '';
     bubbleContent = `<img src="${esc(url)}" onclick="openMedia('img','${esc(url)}')" style="max-width:100%;border-radius:8px;display:block;" loading="lazy"/>`;
   } else {
-    bubbleContent = esc(msg._text || '').replace(/\n/g,'<br>');
+    bubbleContent = esc(msg._text || msg.content_encrypted || '').replace(/\n/g,'<br>');
   }
 
   let replyHtml = '';
@@ -1380,14 +1109,14 @@ function buildMsgEl(msg, conv) {
            onclick="toggleMenu('${msg.id}','${isMe}')">
         ${bubbleContent}
         <div class="bubble-menu" id="menu-${msg.id}">
-          <div class="menu-item" onclick="replyTo('${msg.id}')">
+          <div class="menu-item" onclick="event.stopPropagation(); replyTo('${msg.id}')">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>Antworten
           </div>
           ${isMe && !msg.is_deleted ? `
-          <div class="menu-item" onclick="startEdit('${msg.id}')">
+          <div class="menu-item" onclick="event.stopPropagation(); startEdit('${msg.id}')">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>Bearbeiten
           </div>
-          <div class="menu-item danger" onclick="deleteMsg('${msg.id}')">
+          <div class="menu-item danger" onclick="event.stopPropagation(); deleteMsg('${msg.id}')">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>Löschen
           </div>` : ''}
         </div>
@@ -1399,67 +1128,13 @@ function buildMsgEl(msg, conv) {
       </div>
     </div>`;
 
-  if(msg.expires_at) scheduleBurn(msg);
   return row;
-}
-
-function buildVoicePlayer(msg) {
-  const src = msg._text || '';
-  const id  = msg.id;
-  return `<div class="voice-msg">
-    <button class="voice-play" onclick="toggleAudio('${id}','${esc(src)}',event)" id="vbtn-${id}">▶</button>
-    <div class="voice-waveform">
-      <div class="voice-track"><div class="voice-progress" id="vprog-${id}" style="width:0%"></div></div>
-    </div>
-    <button class="voice-speed" id="vspd-${id}" onclick="cycleSpeed('${id}',event)">1×</button>
-  </div>`;
-}
-
-/* ══════════════ VOICE ══════════════ */
-const audioPlayers = {};
-function toggleAudio(id, src, e) {
-  e.stopPropagation();
-  if(!audioPlayers[id]) {
-    const a = new Audio(src);
-    a.onended = () => { document.getElementById('vbtn-'+id).textContent='▶'; document.getElementById('vprog-'+id).style.width='0%'; };
-    a.ontimeupdate = () => { const prog=document.getElementById('vprog-'+id); if(prog) prog.style.width=(a.currentTime/a.duration*100)+'%'; };
-    audioPlayers[id] = a;
-  }
-  const a = audioPlayers[id];
-  if(a.paused) { a.play(); document.getElementById('vbtn-'+id).textContent='⏸'; }
-  else { a.pause(); document.getElementById('vbtn-'+id).textContent='▶'; }
-}
-function cycleSpeed(id, e) {
-  e.stopPropagation();
-  const a = audioPlayers[id];
-  if(!a) return;
-  const speeds = [1, 1.5, 2];
-  const cur = speeds.indexOf(a.playbackRate);
-  const next = speeds[(cur+1)%speeds.length];
-  a.playbackRate = next;
-  document.getElementById('vspd-'+id).textContent = next + '×';
-}
-
-/* ══════════════ SELF-DESTRUCT ══════════════ */
-function scheduleBurn(msg) {
-  const el = document.getElementById('burn-'+msg.id);
-  if(!el) return;
-  const tick = () => {
-    const left = Math.max(0, new Date(msg.expires_at) - Date.now());
-    el.textContent = left > 0 ? '🔥' + Math.ceil(left/1000) + 's' : '';
-    if(left <= 0) {
-      const row = document.getElementById('msg-'+msg.id);
-      if(row) row.style.opacity='0.3';
-    } else {
-      setTimeout(tick, 1000);
-    }
-  };
-  tick();
 }
 
 /* ══════════════ BUBBLE MENU ══════════════ */
 let openMenu = null;
 function toggleMenu(msgId, isMe) {
+  event.stopPropagation();
   if(openMenu && openMenu !== msgId) {
     const el = document.getElementById('menu-'+openMenu);
     if(el) el.classList.remove('open');
@@ -1528,22 +1203,13 @@ function cancelEdit() {
 
 async function saveEdit(msgId, newText) {
   if(!currentConv) return;
-  const other = currentConv._other;
-  if(!other?.public_key || !myPrivKey) return;
-  const sk = await getSharedKey(other.id, other.public_key);
-  const enc = await encrypt(newText, sk);
-  await db.from('dsn_messages').update({ content_encrypted: enc, is_edited: true }).eq('id', msgId);
+  await db.from('dsn_messages').update({ content_encrypted: newText, is_edited: true }).eq('id', msgId);
   cancelEdit();
 }
 
 /* ══════════════ DELETE ══════════════ */
 async function deleteMsg(msgId) {
   await db.from('dsn_messages').update({ is_deleted: true }).eq('id', msgId);
-  const row = document.getElementById('msg-' + msgId);
-  if(row) {
-    const bubble = row.querySelector('.bubble');
-    if(bubble) { bubble.classList.add('deleted'); bubble.innerHTML = 'Nachricht gelöscht'; }
-  }
   const menu = document.getElementById('menu-'+msgId);
   if(menu) menu.classList.remove('open');
 }
@@ -1582,7 +1248,6 @@ async function sendMessage() {
   const text  = input.value.trim();
   if(!text && !pendingMedia) return;
 
-  // EDIT mode
   if(editingMsg) {
     await saveEdit(editingMsg, text);
     input.value = '';
@@ -1590,7 +1255,6 @@ async function sendMessage() {
     return;
   }
 
-  // Rate limit
   if(isRateLimited()) {
     const msg = document.getElementById('rateLimitMsg');
     msg.textContent = 'Bitte langsamer senden.';
@@ -1598,20 +1262,14 @@ async function sendMessage() {
     return;
   }
 
-  const other = currentConv._other;
-  if(!other?.public_key || !myPrivKey) {
-    alert('Kein Schlüssel des Empfängers gefunden.'); return;
-  }
-  const sk = await getSharedKey(other.id, other.public_key);
-
   let msgType = 'text', content = text;
   if(pendingMedia) {
     msgType = 'media'; content = pendingMedia.data;
     clearMedia();
   }
 
-  const enc = await encrypt(content, sk);
   const replyPreview = replyToMsg ? (document.getElementById('msg-'+replyToMsg)?.querySelector('.bubble')?.innerText?.trim()?.slice(0,50)||'') : null;
+  const backupReply = replyToMsg;
   input.value = '';
   autoResize(input);
   cancelReply();
@@ -1619,14 +1277,15 @@ async function sendMessage() {
   const { error } = await db.from('dsn_messages').insert({
     conversation_id: currentConvId,
     sender_id: currentUser.id,
-    content_encrypted: enc,
+    content_encrypted: content,
     type: msgType,
-    reply_to_id: replyToMsg || null,
+    reply_to_id: backupReply || null,
     reply_preview: replyPreview
   });
   if(error) { console.error(error); return; }
-  // Update last_message_at
   await db.from('dsn_conversations').update({ last_message_at: new Date().toISOString() }).eq('id', currentConvId);
+  await loadConversations();
+  renderSidebar();
 }
 
 /* ══════════════ INITIATE CHAT ══════════════ */
@@ -1634,7 +1293,7 @@ function initiateChat(user) {
   const existing = [...conversations, ...requests].find(c => c._other?.id === user.id);
   if(existing) {
     if(existing.status === 'accepted') { switchTab('chats'); openConv(existing); }
-    else { switchTab('requests'); }
+    else { switchTab('requests'); openPendingRequest(existing.id); }
     return;
   }
   pendingTargetUser = user;
@@ -1652,12 +1311,9 @@ async function sendRequest() {
   if(!user) return;
   const text = document.getElementById('firstMsgInput').value.trim();
   if(!text) { document.getElementById('modalErr').textContent='Bitte eine Nachricht eingeben.'; return; }
-  if(!user.public_key) { document.getElementById('modalErr').textContent='Dieser User hat noch keinen Schlüssel.'; return; }
   const btn = document.getElementById('sendReqBtn');
   btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
   try {
-    const sk = await getSharedKey(user.id, user.public_key);
-    const enc = await encrypt(text, sk);
     const userA = currentUser.id < user.id ? currentUser.id : user.id;
     const userB = currentUser.id < user.id ? user.id : currentUser.id;
     const { data: conv, error } = await db.from('dsn_conversations').insert({
@@ -1668,13 +1324,14 @@ async function sendRequest() {
     if(error) throw error;
     await db.from('dsn_messages').insert({
       conversation_id: conv.id, sender_id: currentUser.id,
-      content_encrypted: enc, type: 'text'
+      content_encrypted: text, type: 'text'
     });
     conv._other = user;
     conversations.unshift(conv);
     closeModal();
     switchTab('chats');
     currentConvId = conv.id; currentConv = conv;
+    await loadConversations();
     renderSidebar();
     openConv(conv);
   } catch(e) { document.getElementById('modalErr').textContent='Fehler: '+e.message; }
@@ -1717,50 +1374,68 @@ function onTyping() {
   }, 2000);
 }
 
-/* ══════════════ REALTIME ══════════════ */
-function setupRealtime() {}
+/* ══════════════ REALTIME SUBSCRIPTION ══════════════ */
+function setupRealtime() {
+  if (realtimeChannel) realtimeChannel.unsubscribe();
 
-let convChannel = null;
-function subscribeConv(convId) {
-  if(convChannel) { convChannel.unsubscribe(); convChannel = null; }
-  convChannel = db.channel('conv-' + convId)
-    .on('postgres_changes', { event:'INSERT', schema:'public', table:'dsn_messages', filter:`conversation_id=eq.${convId}` }, async (payload) => {
-      if(payload.new.sender_id === currentUser.id) return;
+  realtimeChannel = db.channel('public-events')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'dsn_messages' }, async (payload) => {
       const msg = payload.new;
-      const other = currentConv?._other;
-      if(!other?.public_key || !myPrivKey) return;
-      const sk = await getSharedKey(other.id, other.public_key);
-      try { msg._text = await decrypt(msg.content_encrypted, sk); }
-      catch { msg._text = '[Entschlüsselung fehlgeschlagen]'; }
-      const area = document.getElementById('messagesArea');
-      area.appendChild(buildMsgEl(msg, currentConv));
-      area.scrollTop = area.scrollHeight;
-      // Update preview
-      loadConversations().then(renderSidebar);
+      
+      // Falls wir den Chat gerade offen haben, updaten/hinzufügen
+      if (currentConvId && msg.conversation_id === currentConvId) {
+        if (payload.eventType === 'INSERT') {
+          if (msg.sender_id !== currentUser.id) {
+            msg._text = msg.content_encrypted;
+            const area = document.getElementById('messagesArea');
+            if(area) {
+              area.appendChild(buildMsgEl(msg, currentConv));
+              area.scrollTop = area.scrollHeight;
+            }
+          }
+        } else if (payload.eventType === 'UPDATE') {
+          const row = document.getElementById('msg-' + msg.id);
+          if (row) {
+            const bubble = row.querySelector('.bubble');
+            if (msg.is_deleted) {
+              if (bubble) { bubble.classList.add('deleted'); bubble.innerHTML = 'Nachricht gelöscht'; }
+            } else if (msg.is_edited) {
+              if (bubble) { bubble.innerHTML = esc(msg.content_encrypted).replace(/\n/g,'<br>') + '<div class="bubble-menu" id="menu-'+msg.id+'">...</div>'; }
+              const meta = row.querySelector('.msg-meta');
+              if (meta && !meta.querySelector('.edited-tag')) {
+                const et = document.createElement('span'); et.className = 'edited-tag'; et.textContent = ' · bearbeitet'; meta.appendChild(et);
+              }
+            }
+          }
+        }
+      }
+      // Immer im Hintergrund Listen aktualisieren, um Previews/Badges live zu halten
+      await loadConversations();
+      renderSidebar();
     })
-    .on('postgres_changes', { event:'UPDATE', schema:'public', table:'dsn_messages', filter:`conversation_id=eq.${convId}` }, async (payload) => {
-      const updated = payload.new;
-      const row = document.getElementById('msg-' + updated.id);
-      if(!row) return;
-      const bubble = row.querySelector('.bubble');
-      if(updated.is_deleted) { if(bubble) { bubble.classList.add('deleted'); bubble.innerHTML='Nachricht gelöscht'; } }
-      else if(updated.is_edited) {
-        const other = currentConv?._other;
-        const sk = await getSharedKey(other.id, other.public_key);
-        const pt = await decrypt(updated.content_encrypted, sk);
-        if(bubble) { bubble.innerHTML = esc(pt).replace(/\n/g,'<br>') + '<div class="bubble-menu" id="menu-'+updated.id+'">...</div>'; }
-        const meta = row.querySelector('.msg-meta');
-        if(meta && !meta.querySelector('.edited-tag')) { const et=document.createElement('span'); et.className='edited-tag'; et.textContent=' · bearbeitet'; meta.appendChild(et); }
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'dsn_conversations' }, async (payload) => {
+      await loadConversations();
+      renderSidebar();
+      if(currentConvId && payload.new && payload.new.id === currentConvId) {
+        currentConv.status = payload.new.status;
+        if(payload.new.status === 'accepted' && document.getElementById('chatView').classList.contains('hidden')) {
+          openConv(currentConv);
+        }
       }
     })
-    .on('broadcast', { event:'typing' }, ({ payload }) => {
-      if(payload.user_id !== currentUser.id) { document.getElementById('typingArea').classList.remove('hidden'); }
-    })
-    .on('broadcast', { event:'stop_typing' }, ({ payload }) => {
-      if(payload.user_id !== currentUser.id) { document.getElementById('typingArea').classList.add('hidden'); }
-    })
     .subscribe();
-  realtimeChannel = convChannel;
+}
+
+function subscribeConv(convId) {
+  // Broadcast-Events (wie Typing) an den Event-Kanal senden
+  if (realtimeChannel) {
+    realtimeChannel.on('broadcast', { event: 'typing' }, ({ payload }) => {
+      if (currentConvId && payload.user_id !== currentUser.id) { document.getElementById('typingArea').classList.remove('hidden'); }
+    })
+    .on('broadcast', { event: 'stop_typing' }, ({ payload }) => {
+      if (currentConvId && payload.user_id !== currentUser.id) { document.getElementById('typingArea').classList.add('hidden'); }
+    });
+  }
 }
 
 /* ══════════════ PRESENCE ══════════════ */
@@ -1769,7 +1444,6 @@ function setupPresence() {
     .on('presence', { event: 'sync' }, () => {
       const state = presenceChannel.presenceState();
       onlineUsers = new Set(Object.keys(state));
-      // Update chat header
       if(currentConv) {
         const other = currentConv._other;
         if(other) {
@@ -1784,53 +1458,6 @@ function setupPresence() {
       }
     });
 }
-
-/* ══════════════ SUPABASE SETUP SQL ══════════════ */
-/*
-Run this SQL in your Supabase SQL editor to create the required tables:
-
--- Conversations
-CREATE TABLE IF NOT EXISTS public.dsn_conversations (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_a_id uuid NOT NULL REFERENCES public.dsn_users(id) ON DELETE CASCADE,
-  user_b_id uuid NOT NULL REFERENCES public.dsn_users(id) ON DELETE CASCADE,
-  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','accepted','blocked')),
-  initiated_by uuid NOT NULL,
-  last_message_at timestamptz,
-  created_at timestamptz DEFAULT now()
-);
-CREATE UNIQUE INDEX IF NOT EXISTS dsn_conv_pair ON public.dsn_conversations(LEAST(user_a_id,user_b_id),GREATEST(user_a_id,user_b_id));
-
--- Messages
-CREATE TABLE IF NOT EXISTS public.dsn_messages (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  conversation_id uuid NOT NULL REFERENCES public.dsn_conversations(id) ON DELETE CASCADE,
-  sender_id uuid NOT NULL REFERENCES public.dsn_users(id) ON DELETE CASCADE,
-  content_encrypted text NOT NULL,
-  type text NOT NULL DEFAULT 'text' CHECK (type IN ('text','media','voice')),
-  reply_to_id uuid REFERENCES public.dsn_messages(id),
-  reply_preview text,
-  is_deleted boolean DEFAULT false,
-  is_edited boolean DEFAULT false,
-  expires_at timestamptz,
-  created_at timestamptz DEFAULT now()
-);
-
--- Public key column on dsn_users
-ALTER TABLE public.dsn_users ADD COLUMN IF NOT EXISTS public_key text;
-
--- RLS: enable & policies
-ALTER TABLE public.dsn_conversations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.dsn_messages ENABLE ROW LEVEL SECURITY;
-
--- Allow all for now (you can tighten later)
-CREATE POLICY IF NOT EXISTS dsn_conv_all ON public.dsn_conversations FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY IF NOT EXISTS dsn_msg_all  ON public.dsn_messages      FOR ALL USING (true) WITH CHECK (true);
-
--- Realtime
-ALTER PUBLICATION supabase_realtime ADD TABLE public.dsn_messages;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.dsn_conversations;
-*/
 </script>
 </body>
 </html>
