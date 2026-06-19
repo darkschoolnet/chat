@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nova Chat</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
 <style>
   :root {
@@ -20,7 +20,7 @@
   }
   
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-  body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+  body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; position: relative; }
   
   .hidden { display: none !important; }
   .btn { background: var(--primary); color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 500; }
@@ -71,16 +71,25 @@
   #msg-input:focus { border-color: var(--primary); }
   .send-btn { background: var(--primary); color: white; border: none; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-  .empty-state { flex: 1; display: flex; justify-content: center; align-items: center; color: var(--text-muted); font-size: 16px; flex-direction: column; }
+  .empty-state { flex: 1; display: flex; justify-content: center; align-items: center; color: var(--text-muted); font-size: 16px; flex-direction: column; text-align: center; padding: 20px;}
   
-  .version-tag { position: absolute; bottom: 5px; right: 10px; font-size: 11px; color: #a1a1aa; pointer-events: none; }
+  .version-tag { position: absolute; bottom: 5px; right: 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #a1a1aa; opacity: 0.6; pointer-events: none; }
 </style>
 </head>
 <body>
 
 <div id="auth-screen">
-  <h2 id="auth-title">Nova Login</h2>
+  <h2 id="auth-title">Login</h2>
   <input type="text" id="username" class="input" placeholder="Benutzername" autocomplete="off">
+  
+  <div id="reg-fields" class="hidden">
+    <select id="grade" class="input">
+      <option value="" disabled selected>— Klasse wählen —</option>
+      <option>5</option><option>6</option><option>7</option><option>8</option>
+      <option>9</option><option>10</option><option>11</option><option>12</option><option>13</option>
+    </select>
+  </div>
+
   <input type="password" id="password" class="input" placeholder="Passwort">
   <p id="auth-error" style="color: red; font-size: 12px; margin-bottom: 10px;"></p>
   <button id="auth-btn" class="btn" style="width: 100%;" onclick="handleAuth()">Einloggen</button>
@@ -88,7 +97,6 @@
 </div>
 
 <div id="app-screen" class="hidden">
-  
   <div id="sidebar">
     <div class="sidebar-header">
       <div style="font-weight: 600; font-size: 18px;" id="my-name">User</div>
@@ -113,16 +121,16 @@
       </div>
       <div id="messages"></div>
       <div class="chat-input-bar">
-        <input type="text" id="msg-input" placeholder="Schreibe eine Nachricht..." onkeypress="handleEnter(event)">
+        <input type="text" id="msg-input" placeholder="Schreibe eine Nachricht..." autocomplete="off" onkeypress="handleEnter(event)">
         <button class="send-btn" onclick="sendMessage()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
         </button>
       </div>
     </div>
   </div>
-  
-  <div class="version-tag">Beta V1.2</div>
 </div>
+
+<div class="version-tag">Beta V1.2</div>
 
 <script>
 /* --- CONFIG --- */
@@ -155,37 +163,52 @@ async function hashPw(pw,saltHex){
 /* --- AUTH --- */
 function toggleAuthMode() {
   isLoginMode = !isLoginMode;
-  document.getElementById('auth-title').innerText = isLoginMode ? 'Nova Login' : 'Nova Registrieren';
+  document.getElementById('auth-title').innerText = isLoginMode ? 'Login' : 'Registrieren';
   document.getElementById('auth-btn').innerText = isLoginMode ? 'Einloggen' : 'Account erstellen';
   document.querySelector('.toggle-link').innerText = isLoginMode ? 'Noch keinen Account? Registrieren' : 'Bereits einen Account? Einloggen';
   document.getElementById('auth-error').innerText = '';
+  document.getElementById('reg-fields').classList.toggle('hidden', isLoginMode);
 }
 
 async function handleAuth() {
   const user = document.getElementById('username').value.trim().toLowerCase();
   const pass = document.getElementById('password').value;
+  const grade = document.getElementById('grade').value;
   const err = document.getElementById('auth-error');
   
-  if(!user || !pass) return err.innerText = 'Bitte fülle alles aus.';
+  if(!user || !pass) return err.innerText = 'Bitte fülle alle Pflichtfelder aus.';
   if(pass.length < 6) return err.innerText = 'Passwort mind. 6 Zeichen.';
+  if(!isLoginMode && !grade) return err.innerText = 'Bitte wähle eine Klasse.';
+
+  const btn = document.getElementById('auth-btn');
+  btn.disabled = true;
 
   try {
     if (isLoginMode) {
-      // LOGIN
-      const { data: salt } = await db.rpc('nova_get_salt', { p_user: user });
+      // Nutze die alten DSN Login-Funktionen
+      const { data: salt } = await db.rpc('dsn_get_salt', { p_username: user });
       if(!salt) throw new Error('Benutzer nicht gefunden.');
       const hashed = await hashPw(pass, salt);
-      const { data: userData } = await db.rpc('nova_login', { p_user: user, p_hash: hashed });
+      const { data: userData } = await db.rpc('dsn_login', { p_username: user, p_password_hash: hashed });
       if(!userData) throw new Error('Falsches Passwort.');
       me = userData;
     } else {
-      // REGISTER
-      const { data: check } = await db.from('nova_accounts').select('id').eq('username', user).single();
-      if(check) throw new Error('Benutzername vergeben.');
+      // Registriere in der alten dsn_users Tabelle
+      const { data: check } = await db.rpc('dsn_check_username', { p_username: user });
+      if(!check) throw new Error('Benutzername vergeben.');
       
       const salt = genSalt();
       const hashed = await hashPw(pass, salt);
-      const { data: newUser, error } = await db.from('nova_accounts').insert({ username: user, password_hash: hashed, salt: salt }).select().single();
+      const { data: newUser, error } = await db.from('dsn_users').insert([{ 
+        username: user, 
+        real_name: user, 
+        grade: grade, 
+        salt: salt, 
+        password_hash: hashed, 
+        show_name: true, 
+        school: 'Andere Schule' 
+      }]).select().single();
+      
       if(error) throw error;
       me = newUser;
     }
@@ -200,6 +223,8 @@ async function handleAuth() {
 
   } catch (error) {
     err.innerText = error.message;
+  } finally {
+    btn.disabled = false;
   }
 }
 
@@ -214,11 +239,11 @@ function logout() {
 
 /* --- DATA LOADING --- */
 async function loadInitialData() {
-  // 1. Lade alle User außer mir
-  const { data: users } = await db.from('nova_accounts').select('id, username').neq('id', me.id);
+  // Lade alle alten dsn_users außer mir selbst
+  const { data: users } = await db.from('dsn_users').select('id, username').neq('id', me.id);
   state.users = users || [];
 
-  // 2. Lade alle meine Räume
+  // Lade alle neuen nova_rooms
   const { data: rooms } = await db.from('nova_rooms')
     .select('*')
     .or(`member_one.eq.${me.id},member_two.eq.${me.id}`)
@@ -241,7 +266,6 @@ function renderSidebar() {
   const list = document.getElementById('sidebar-list');
   list.innerHTML = '';
 
-  // Eingehende Anfragen zählen
   const pendingIncoming = state.rooms.filter(r => r.status === 'pending' && r.initiator !== me.id);
   document.getElementById('req-count').innerText = pendingIncoming.length > 0 ? `(${pendingIncoming.length})` : '';
 
@@ -289,6 +313,10 @@ function renderSidebar() {
     });
 
   } else if (activeTab === 'users') {
+    if (state.users.length === 0) {
+      return list.innerHTML = '<div style="padding: 20px; color: gray; text-align: center;">Keine anderen Benutzer gefunden.</div>';
+    }
+
     state.users.forEach(user => {
       const existingRoom = state.rooms.find(r => (r.member_one === user.id || r.member_two === user.id));
       
@@ -352,9 +380,8 @@ async function openChat(room, targetUser) {
   document.getElementById('chat-partner-name').innerText = targetUser.username;
   document.getElementById('msg-input').focus();
   
-  renderSidebar(); // Um das active Styling in der Liste zu setzen
+  renderSidebar();
 
-  // Nachrichten laden
   const { data: texts } = await db.from('nova_texts').select('*').eq('room_id', room.id).order('created_at', { ascending: true });
   state.texts = texts || [];
   renderMessages();
@@ -384,14 +411,12 @@ async function sendMessage() {
   const text = input.value.trim();
   if(!text) return;
 
-  input.value = ''; // Sofort leeren für flüssiges Gefühl
+  input.value = '';
 
-  // 1. Optimistisches UI Update (Nachricht direkt anzeigen)
   const tempMsg = { id: 'temp-'+Date.now(), author_id: me.id, body: text, room_id: activeRoom.id };
   state.texts.push(tempMsg);
   renderMessages();
 
-  // 2. In DB speichern
   const { data, error } = await db.from('nova_texts').insert({
     room_id: activeRoom.id,
     author_id: me.id,
@@ -400,10 +425,9 @@ async function sendMessage() {
 
   if(error) {
     alert('Fehler beim Senden!');
-    state.texts = state.texts.filter(t => t.id !== tempMsg.id); // Bei Fehler wieder entfernen
+    state.texts = state.texts.filter(t => t.id !== tempMsg.id);
     renderMessages();
   } else {
-    // Temp-ID durch echte ID austauschen
     const idx = state.texts.findIndex(t => t.id === tempMsg.id);
     if(idx > -1) state.texts[idx] = data;
     await db.from('nova_rooms').update({ updated_at: new Date().toISOString() }).eq('id', activeRoom.id);
@@ -413,18 +437,24 @@ async function sendMessage() {
 /* --- REALTIME --- */
 function setupRealtime() {
   realtimeChannel = db.channel('nova-public')
+    // Höre auf neue DSN Accounts
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'dsn_users' }, payload => {
+      const newUser = payload.new;
+      if (newUser.id !== me.id) {
+        state.users.push(newUser);
+        if (activeTab === 'users') renderSidebar();
+      }
+    })
     // Höre auf neue Nachrichten
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'nova_texts' }, payload => {
       const newText = payload.new;
-      // Ist die Nachricht für den offenen Chat und NICHT von mir selbst?
       if (activeRoom && newText.room_id === activeRoom.id && newText.author_id !== me.id) {
         state.texts.push(newText);
         renderMessages();
       }
     })
-    // Höre auf Chat-Anfragen & Statusänderungen
+    // Höre auf Chat-Anfragen
     .on('postgres_changes', { event: '*', schema: 'public', table: 'nova_rooms' }, async payload => {
-      // Wenn neuer Raum oder Update, laden wir einfach die Räume neu, um sicherzugehen
       const { data: rooms } = await db.from('nova_rooms')
         .select('*')
         .or(`member_one.eq.${me.id},member_two.eq.${me.id}`)
